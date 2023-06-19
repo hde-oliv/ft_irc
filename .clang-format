@@ -1,0 +1,23 @@
+﻿---
+BasedOnStyle: Google
+AccessModifierOffset: '0'
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: 'true'
+AlignConsecutiveDeclarations: 'true'
+ColumnLimit: '80'
+CompactNamespaces: 'false'
+Cpp11BracedListStyle: 'false'
+IndentWidth: '4'
+Language: Cpp
+ObjCBlockIndentWidth: '4'
+ObjCSpaceAfterProperty: 'false'
+ObjCSpaceBeforeProtocolList: 'false'
+PointerAlignment: Right
+SpaceAfterLogicalNot: 'false'
+SpaceAfterTemplateKeyword: 'false'
+SpacesInParentheses: 'true'
+SpacesInSquareBrackets: 'false'
+TabWidth: '4'
+UseTab: Always
+
+...
