@@ -1,6 +1,11 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include <iostream>
 #include <string>
 
 class Server {
@@ -10,6 +15,7 @@ class Server {
 	Server( Server const &ref );
 	~Server( void );
 	Server &operator=( Server const &ref );
+	void	startListening();
 
 	private:
 	std::string	 password;

@@ -1,5 +1,9 @@
-SRC		:=
-OBJ		:=	$(SRC:.cpp=.o)
+SRC_DIR	:=	src
+OBJ_DIR	:=	obj
+
+SRC		:=	Server.cpp main.cpp
+SRCS	:=	$(addprefix $(SRC_DIR)/,$(SRC))
+OBJS	:=	$(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 CC		:=	c++
 CFLAGS	+=	-Wall -Wextra -Werror -std=c++98
 RM		:=	rm -rf
@@ -7,11 +11,11 @@ NAME	:=	ft_irc
 
 all:		$(NAME)
 
-.cpp.o:
+$(OBJ_DIR)/%.o:		$(SRC_DIR)/%.cpp
 			$(CC) $(CFLAGS) -c $< -o $@
 
-$(NAME):	$(OBJ)
-			$(CC) $(OBJ) $(CFLAGS) -o $(NAME)
+$(NAME):	$(OBJS)
+			$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
 
 clean:
 			$(RM) $(OBJ)
