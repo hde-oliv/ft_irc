@@ -22,7 +22,7 @@ class Server {
 	void	startServer();
 
 	private:
-	void setupFD();
+	void setupSocket();
 	void clientEventHandling();
 	void serverEventHandling();
 

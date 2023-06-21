@@ -38,7 +38,7 @@ Server &Server::operator=(const Server &ref) {
 	return *this;
 }
 
-void Server::setupFD() {
+void Server::setupSocket() {
 	int opt = 1;
 	int err;
 
@@ -74,7 +74,7 @@ void Server::setupFD() {
 }
 
 void Server::startServer() {
-	setupFD();
+	setupSocket();
 
 	fds[0].fd	  = server_fd;
 	fds[0].events = POLLIN;
