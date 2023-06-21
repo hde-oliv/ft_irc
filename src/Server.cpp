@@ -38,7 +38,6 @@ Server &Server::operator=(const Server &ref) {
 
 void Server::setupFD() {
 	int opt = 1;
-
 	int err;
 
 	address.sin_family		= AF_INET;
@@ -144,8 +143,11 @@ void Server::clientEventHandling() {
 					   sizeof(fds[clients]));  // TODO: memset not allowed
 				clients--;
 			} else {
-				std::cout << "Received data from client " << fds[i].fd << ": "
-						  << buffer << std::endl;
+				std::cout << "Client " << fds[i].fd
+						  << " =================== Start" << std::endl;
+				std::cout << buffer;
+				std::cout << "Client " << fds[i].fd
+						  << " =================== End" << std::endl;
 
 				// Echo the data back to the client
 				if (write(fds[i].fd, buffer, bytes_read) == -1) {
