@@ -9,6 +9,8 @@
 #include <cstring>
 #include <iostream>
 
+#include "Utils.hpp"
+
 Server::Server() {}
 
 Server::Server(std::string const &password, int const &port) {
@@ -126,7 +128,7 @@ void Server::clientEventHandling() {
 		if (fds[i].revents & POLLIN) {
 			char buffer[BUFFER_SIZE];
 
-			memset(buffer, 0, sizeof(buffer));	// TODO: memset not allowed
+			ft_memset(buffer, 0, sizeof(buffer));  // TODO: memset not allowed
 
 			ssize_t bytes_read = read(fds[i].fd, buffer, sizeof(buffer));
 
@@ -139,8 +141,7 @@ void Server::clientEventHandling() {
 				close(fds[i].fd);
 
 				fds[i] = fds[clients];
-				memset(&fds[clients], 0,
-					   sizeof(fds[clients]));  // TODO: memset not allowed
+				ft_memset(&fds[clients], 0, sizeof(fds[clients]));
 				clients--;
 			} else {
 				std::cout << "Client " << fds[i].fd
