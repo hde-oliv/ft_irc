@@ -14,59 +14,60 @@
 Server::Server() {}
 
 Server::Server(std::string const &password, int const &port) {
-	this->password = password;
-	this->port	   = port;
-	server_fd	   = 0;
-	clients		   = 0;
+	this->password	= password;
+	this->port		= port;
+	this->server_fd = 0;
+	this->clients	= 0;
 }
 
 Server::Server(Server const &ref) {
-	this->password = ref.password;
-	this->port	   = ref.port;
-	server_fd	   = ref.server_fd;
-	clients		   = ref.clients;
+	this->password	= ref.password;
+	this->port		= ref.port;
+	this->server_fd = ref.server_fd;
+	this->clients	= ref.clients;
 }
 
 Server::~Server() {}
 
 Server &Server::operator=(const Server &ref) {
-	this->password = ref.password;
-	this->port	   = ref.port;
-	server_fd	   = ref.server_fd;
-	clients		   = ref.clients;
+	this->password	= ref.password;
+	this->port		= ref.port;
+	this->server_fd = ref.server_fd;
+	this->clients	= ref.clients;
 
-	return *this;
+	return (*this);
 }
 
 void Server::setupSocket() {
 	int opt = 1;
 	int err;
 
-	address.sin_family		= AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port		= htons(this->port);
+	this->address.sin_family	  = AF_INET;
+	this->address.sin_addr.s_addr = INADDR_ANY;
+	this->address.sin_port		  = htons(this->port);
 
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (server_fd < 0) {
+	if (this->server_fd < 0) {
 		std::cout << "socket failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	err = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
-					 sizeof(opt));
+	err = setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
+					 &opt, sizeof(opt));
 	if (err) {
 		std::cout << "setsockopt failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	err = bind(server_fd, (struct sockaddr *)&address, sizeof(address));
+	err = bind(this->server_fd, (struct sockaddr *)&(this->address),
+			   sizeof(this->address));
 	if (err < 0) {
 		std::cout << "bind failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	err = listen(server_fd, SOMAXCONN);
+	err = listen(this->server_fd, SOMAXCONN);
 	if (err < 0) {
 		std::cout << "listen failed" << std::endl;
 		exit(EXIT_FAILURE);
@@ -76,11 +77,11 @@ void Server::setupSocket() {
 void Server::startServer() {
 	setupSocket();
 
-	fds[0].fd	  = server_fd;
-	fds[0].events = POLLIN;
+	this->fds[0].fd		= this->server_fd;
+	this->fds[0].events = POLLIN;
 
 	while (true) {
-		int r = poll(fds, this->clients + 1, -1);
+		int r = poll(this->fds, this->clients + 1, -1);
 
 		if (r < 0) {
 			std::cout << "poll failed" << std::endl;
@@ -91,16 +92,16 @@ void Server::startServer() {
 		clientEventHandling();
 	}
 
-	close(server_fd);
+	close(this->server_fd);
 }
 
 void Server::serverEventHandling() {
 	struct sockaddr_in client_address;
 	int				   addrlen = sizeof(client_address);
 
-	if (fds[0].revents & POLLIN) {
+	if (this->fds[0].revents & POLLIN) {
 		// New client
-		int fd = accept(server_fd, (struct sockaddr *)&client_address,
+		int fd = accept(this->server_fd, (struct sockaddr *)&client_address,
 						(socklen_t *)&addrlen);
 		if (fd < 0) {
 			std::cout << "accept failed" << std::endl;
@@ -111,9 +112,9 @@ void Server::serverEventHandling() {
 				  << inet_ntoa(client_address.sin_addr) << std::endl;
 
 		if (clients < MAX_CLIENTS) {
-			fds[clients + 1].fd		= fd;
-			fds[clients + 1].events = POLLIN;
-			clients++;
+			this->fds[clients + 1].fd	  = fd;
+			this->fds[clients + 1].events = POLLIN;
+			this->clients++;
 		} else {
 			std::cout
 				<< "Maximum number of clients reached. Connection rejected"
@@ -124,8 +125,8 @@ void Server::serverEventHandling() {
 }
 
 void Server::clientEventHandling() {
-	for (int i = 1; i <= clients; i++) {
-		if (fds[i].revents & POLLIN) {
+	for (int i = 1; i <= this->clients; i++) {
+		if (this->fds[i].revents & POLLIN) {
 			char buffer[BUFFER_SIZE];
 
 			ft_memset(buffer, 0, sizeof(buffer));  // TODO: memset not allowed
@@ -138,20 +139,20 @@ void Server::clientEventHandling() {
 			} else if (bytes_read == 0) {
 				std::cout << "Client disconnected. Client socket: " << fds[i].fd
 						  << std::endl;
-				close(fds[i].fd);
+				close(this->fds[i].fd);
 
-				fds[i] = fds[clients];
-				ft_memset(&fds[clients], 0, sizeof(fds[clients]));
-				clients--;
+				this->fds[i] = this->fds[clients];
+				ft_memset(&(this->fds[clients]), 0, sizeof(this->fds[clients]));
+				this->clients--;
 			} else {
-				std::cout << "Client " << fds[i].fd
+				std::cout << "Client " << this->fds[i].fd
 						  << " =================== Start" << std::endl;
 				std::cout << buffer;
-				std::cout << "Client " << fds[i].fd
+				std::cout << "Client " << this->fds[i].fd
 						  << " =================== End" << std::endl;
 
 				// Echo the data back to the client
-				if (write(fds[i].fd, buffer, bytes_read) == -1) {
+				if (write(this->fds[i].fd, buffer, bytes_read) == -1) {
 					std::cout << "write failed" << std::endl;
 					exit(EXIT_FAILURE);
 				}
