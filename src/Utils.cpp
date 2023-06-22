@@ -13,7 +13,7 @@ void *ft_memset(void *b, int c, size_t len) {
 }
 
 void panic(std::string caller, std::string msg) {
-	std::cerr << caller << " : " << msg << std::endl;
+	std::cerr << "Exception on " << caller << ": " << msg << std::endl;
 
 	throw std::exception();
 }

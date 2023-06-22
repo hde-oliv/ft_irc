@@ -1,9 +1,9 @@
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "Logger.hpp"
 #include "Server.hpp"
 #include "Utils.hpp"
 
