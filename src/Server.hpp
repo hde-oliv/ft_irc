@@ -20,10 +20,8 @@ class Server {
 	public:
 	Server(void);
 	Server(std::string const &password, int const &port);
-	Server(Server const &ref);
 	~Server(void);
-	Server &operator=(Server const &ref);
-	void	startServer();
+	void startServer();
 
 	private:
 	void setupSocket();
@@ -33,7 +31,7 @@ class Server {
 	std::string			 password;
 	int					 port;
 	int					 server_fd;
-	int					 clients;
+	std::vector<Client>	 clients;
 	std::vector<Channel> channels;
 	struct pollfd		 fds[MAX_CLIENTS];
 	struct sockaddr_in	 address;

@@ -5,20 +5,7 @@
 
 #include "Logger.hpp"
 #include "Server.hpp"
-
-void panic(std::string caller, std::string msg) {
-	Logger *l = Logger::get();
-
-	std::stringstream ss;
-
-	ss << caller << " : " << msg;
-
-	l->log(ERROR, ss.str());
-
-	delete l;
-
-	throw std::exception();
-}
+#include "Utils.hpp"
 
 void validateInput(int argc, char *argv[]) {
 	if (argc != 3) {

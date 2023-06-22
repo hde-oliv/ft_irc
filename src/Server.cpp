@@ -20,23 +20,7 @@ Server::Server(std::string const &password, int const &port) {
 	this->clients	= 0;
 }
 
-Server::Server(Server const &ref) {
-	this->password	= ref.password;
-	this->port		= ref.port;
-	this->server_fd = ref.server_fd;
-	this->clients	= ref.clients;
-}
-
 Server::~Server() {}
-
-Server &Server::operator=(const Server &ref) {
-	this->password	= ref.password;
-	this->port		= ref.port;
-	this->server_fd = ref.server_fd;
-	this->clients	= ref.clients;
-
-	return (*this);
-}
 
 void Server::setupSocket() {
 	int opt = 1;
@@ -49,28 +33,24 @@ void Server::setupSocket() {
 	this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (this->server_fd < 0) {
-		std::cout << "socket failed" << std::endl;
-		exit(EXIT_FAILURE);
+		panic("socket(Server:36)", "Failed");
 	}
 
 	err = setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
 					 &opt, sizeof(opt));
 	if (err) {
-		std::cout << "setsockopt failed" << std::endl;
-		exit(EXIT_FAILURE);
+		panic("setsockopt(Server:43)", "Failed");
 	}
 
 	err = bind(this->server_fd, (struct sockaddr *)&(this->address),
 			   sizeof(this->address));
 	if (err < 0) {
-		std::cout << "bind failed" << std::endl;
-		exit(EXIT_FAILURE);
+		panic("bind(Server:48)", "Failed");
 	}
 
 	err = listen(this->server_fd, SOMAXCONN);
 	if (err < 0) {
-		std::cout << "listen failed" << std::endl;
-		exit(EXIT_FAILURE);
+		panic("listen(Server:53)", "Failed");
 	}
 }
 
@@ -84,8 +64,7 @@ void Server::startServer() {
 		int r = poll(this->fds, this->clients + 1, -1);
 
 		if (r < 0) {
-			std::cout << "poll failed" << std::endl;
-			exit(EXIT_FAILURE);
+			panic("poll(Server:67)", "Failed");
 		}
 
 		serverEventHandling();
@@ -104,8 +83,7 @@ void Server::serverEventHandling() {
 		int fd = accept(this->server_fd, (struct sockaddr *)&client_address,
 						(socklen_t *)&addrlen);
 		if (fd < 0) {
-			std::cout << "accept failed" << std::endl;
-			exit(EXIT_FAILURE);
+			panic("poll(Server:86)", "Failed");
 		}
 
 		std::cout << "New connection accepted. Client address: "
