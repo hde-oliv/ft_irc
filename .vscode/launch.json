@@ -30,7 +30,7 @@
 					"ignoreFailures": true
 				}
 			],
-			//"preLaunchTask": "Compile with make",
+			"preLaunchTask": "Compile with make",
 			"miDebuggerPath": "/usr/bin/gdb"
 		}
 	]
