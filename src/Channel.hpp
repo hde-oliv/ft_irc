@@ -10,21 +10,22 @@
 #define CHANNEL_INVALID_CHARS " ,"
 #define USER_CHANNEL_LIMIT 10
 
-class Channel {
-	public:
-	Channel(void);
-	Channel(std::string const &nickname, std::string const &username,
-			std::string const &host);
-	Channel(Channel const &ref);
-	~Channel(void);
-	Channel &operator=(Channel const &ref);
+#include <vector>
 
-	private:
-	std::string	 nickname;
-	unsigned int modes;
-	std::string	 username;
-	std::string	 host;
-	Client		 channel_operator;
+class Channel {
+    public:
+    Channel(void);
+    ~Channel(void);
+
+    private:
+    std::string         name;
+    std::string         topic;
+    std::string         host;
+    std::string         password;
+    std::vector<Client> operators;
+    std::vector<Client> clients;
+    unsigned int        modes;
+    int                 limit;
 };
 
 #endif
