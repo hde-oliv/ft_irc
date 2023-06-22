@@ -16,7 +16,7 @@ void *ft_memset(void *b, int c, size_t len) {
 void panic(std::string caller, std::string msg) {
 	std::cerr << "Exception on " << caller << ": " << msg << std::endl;
 
-	perror("Motive");  // TODO: Remove this later
+	perror("ERRNO");  // TODO: Remove this later
 
 	throw std::exception();
 }
