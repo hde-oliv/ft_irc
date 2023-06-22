@@ -14,6 +14,7 @@
 
 #define MAX_CLIENTS 5
 
+#include <map>
 #include <vector>
 
 class Server {
@@ -28,13 +29,14 @@ class Server {
 	void clientEventHandling();
 	void serverEventHandling();
 
-	std::string			 password;
-	int					 port;
-	int					 server_fd;
-	std::vector<Client>	 clients;
-	std::vector<Channel> channels;
-	struct pollfd		 fds[MAX_CLIENTS];
-	struct sockaddr_in	 address;
+	std::string			  password;
+	int					  port;
+	int					  server_fd;
+	int					  poll_index;
+	std::map<int, Client> clients;
+	std::vector<Channel>  channels;
+	struct pollfd		  pollfds[MAX_CLIENTS];
+	struct sockaddr_in	  address;
 };
 
 #endif

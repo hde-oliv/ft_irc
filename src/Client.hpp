@@ -7,17 +7,21 @@
 #define BUFFER_SIZE 512
 
 class Client {
-    public:
-    Client(void);
-    ~Client(void);
+	public:
+	Client(void);
+	~Client(void);
 
-    private:
-    int         fd;
-    std::string nickname;
-    std::string username;
-    std::string host;
-    char       *r_buffer[BUFFER_SIZE];
-    char       *w_buffer[BUFFER_SIZE];
+	void setHost(std::string host);
+	void setFd(int fd);
+
+	char r_buffer[BUFFER_SIZE];
+	char w_buffer[BUFFER_SIZE];
+
+	private:
+	int			fd;
+	std::string nickname;
+	std::string username;
+	std::string host;
 };
 
 // TODO: Consider this later
