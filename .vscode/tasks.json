@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Compile with make",
+			"type": "cppbuild",
+			"command": "make",
+			"args": [
+				"re"
+			],
+			"problemMatcher": [
+				"$gcc",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		}
+	]
+}
