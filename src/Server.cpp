@@ -113,7 +113,7 @@ void Server::clientEventHandling() {
 			char buffer[BUFFER_SIZE];  // TODO: use client buffer, currently
 									   // bugged
 
-			ft_memset(buffer, 0, BUFFER_SIZE);
+			std::memset(buffer, 0, BUFFER_SIZE);
 
 			ssize_t v = read(pollfds[i].fd, buffer, BUFFER_SIZE);
 
@@ -125,8 +125,8 @@ void Server::clientEventHandling() {
 				close(pollfds[i].fd);
 
 				pollfds[i] = pollfds[poll_index];
-				ft_memset(&(pollfds[poll_index]), 0,
-						  sizeof(pollfds[poll_index]));
+				std::memset(&(pollfds[poll_index]), 0,
+							sizeof(pollfds[poll_index]));
 
 				poll_index--;
 			} else {
