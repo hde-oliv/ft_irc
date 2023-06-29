@@ -23,7 +23,11 @@ Server::Server(std::string const &password, int const &port) {
 }
 
 Server::~Server() {}
-
+void Server::ejectClient(int clientFd) {
+	clients.erase(clientFd);
+	std::cout << "Client successfully ejected. (fd : " << clientFd << ")"
+			  << std::endl;
+}
 void Server::setupSocket() {
 	int opt = 1;
 	int err;
@@ -57,17 +61,14 @@ void Server::setupSocket() {
 
 void Server::startServer() {
 	setupSocket();
-
+	std::memset(pollfds, 0, sizeof(pollfd) * MAX_CLIENTS);
 	pollfds[0].fd	  = server_fd;
 	pollfds[0].events = POLLIN;
 	poll_index		  = 0;
 
 	while (g_online) {
-		int r = poll(pollfds, poll_index + 1, -1);
-
-		if (r < 0) {
-			panic("poll(Server:67)", "Failed");
-		}
+		// int r = poll(pollfds, poll_index + 1, -1);
+		poll(pollfds, poll_index + 1, -1);
 
 		newClientHandling();
 		clientEventHandling();
@@ -88,12 +89,12 @@ void Server::newClientHandling() {
 		}
 
 		if (poll_index < MAX_CLIENTS) {
-			Client *newClient = new Client;
+			Client newClient;
 
-			newClient->setHost(inet_ntoa(client_address.sin_addr));
-			newClient->setFd(fd);
+			newClient.setHost(inet_ntoa(client_address.sin_addr));
+			newClient.setFd(fd);
 
-			clients[fd]					   = *newClient;
+			clients[fd]					   = newClient;
 			pollfds[poll_index + 1].fd	   = fd;
 			pollfds[poll_index + 1].events = POLLIN;
 			poll_index++;

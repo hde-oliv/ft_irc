@@ -28,6 +28,7 @@ class Server {
 	void setupSocket();
 	void clientEventHandling();
 	void newClientHandling();
+	void ejectClient(int clientFd);
 
 	std::string			  password;
 	int					  port;
