@@ -12,11 +12,12 @@ NAME	:=	ircserv
 
 all:		$(NAME)
 
-teste: all
-	./ft_irc 1234 8000
 
-$(OBJ_DIR)/%.o:		$(SRC_DIR)/%.cpp
+$(OBJ_DIR)/%.o:	$(SRC_DIR)/%.cpp
 			$(CC) $(CFLAGS) -c $< -o $@
+
+test:		all
+			./ircserv 1234 6667
 
 $(NAME):	$(OBJS)
 			$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
