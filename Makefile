@@ -7,7 +7,7 @@ OBJS	:=	$(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 CC		:=	c++
 CFLAGS	+=	-Wall -Wextra -Werror -std=c++98 -g
 RM		:=	rm -rf
-NAME	:=	ft_irc
+NAME	:=	ircserv
 
 
 all:		$(NAME)
