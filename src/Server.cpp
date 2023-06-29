@@ -12,6 +12,8 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 
+extern bool g_online;
+
 Server::Server() {}
 
 Server::Server(std::string const &password, int const &port) {
@@ -60,21 +62,21 @@ void Server::startServer() {
 	pollfds[0].events = POLLIN;
 	poll_index		  = 0;
 
-	while (true) {
+	while (g_online) {
 		int r = poll(pollfds, poll_index + 1, -1);
 
 		if (r < 0) {
 			panic("poll(Server:67)", "Failed");
 		}
 
-		serverEventHandling();
+		newClientHandling();
 		clientEventHandling();
 	}
 
 	close(server_fd);
 }
 
-void Server::serverEventHandling() {
+void Server::newClientHandling() {
 	struct sockaddr_in client_address;
 	int				   addrlen = sizeof(client_address);
 
@@ -141,6 +143,14 @@ void Server::clientEventHandling() {
 					panic("write(Server:137)", "Failed");
 				}
 			}
+		} else if (pollfds[i].revents & POLLOUT) {
+			std::cout << "POLLOUT caught" << std::endl;
+		} else if (pollfds[i].revents & POLLERR) {
+			std::cout << "POLLERR caught" << std::endl;
+		} else if (pollfds[i].revents & POLLHUP) {
+			std::cout << "POLLHUP caught" << std::endl;
+		} else if (pollfds[i].revents & POLLNVAL) {
+			std::cout << "POLLNVAL caught" << std::endl;
 		}
 	}
 }
