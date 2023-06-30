@@ -46,11 +46,7 @@ void Server::ejectClient(int clientFd, int reason) {
 		default:
 			std::cout << "Client successfully ejected. (fd : " << clientFd
 					  << ")" << std::endl;
-			break;
 	}
-
-	std::cout << "Client successfully ejected. (fd : " << clientFd << ")"
-			  << std::endl;
 }
 void Server::setupSocket() {
 	int opt = 1;
@@ -91,14 +87,29 @@ void Server::startServer() {
 	poll_index		  = 0;
 
 	while (g_online) {
-		// int r = poll(pollfds, poll_index + 1, -1);
-		poll(pollfds, poll_index + 1, -1);
-
-		newClientHandling();
-		clientEventHandling();
+		int r = poll(pollfds, poll_index + 1, -1);
+		if (r >= 0) {
+			newClientHandling();
+			clientEventHandling();
+		}
 	}
 
 	close(server_fd);
+}
+
+pollfd &Server::getAvailablePollFd() {
+	int i = 1;
+	while (i < MAX_CLIENTS) {
+		if (pollfds[i].fd == 0) {
+			break;
+		}
+		i++;
+	}
+	if (i == MAX_CLIENTS) {
+		panic("Server:getAvailablePollFd",
+			  "Server could not find an available pollfd.");
+	}
+	return pollfds[i];
 }
 
 void Server::newClientHandling() {
@@ -113,18 +124,14 @@ void Server::newClientHandling() {
 		}
 
 		if (poll_index < MAX_CLIENTS) {
-			Client newClient;
+			Client	newClient;
+			pollfd &clientPollFd = getAvailablePollFd();
 
 			newClient.setHost(inet_ntoa(client_address.sin_addr));
 			newClient.setFd(fd);
-
-			// this logic of assign poll_index + 1 will break when re-using
-			// indexes are needed.
-			// TODO: find next empty pollfds available to use instead of
-			// poll_index+1
-			clients[fd]					   = newClient;
-			pollfds[poll_index + 1].fd	   = fd;
-			pollfds[poll_index + 1].events = POLLIN;
+			clients[fd]			= newClient;
+			clientPollFd.fd		= fd;
+			clientPollFd.events = POLLIN;
 			poll_index++;
 			std::cout << "New connection stablished with "
 					  << newClient.getHost() << " on fd " << fd << std::endl;
@@ -154,15 +161,8 @@ void Server::clientEventHandling() {
 			if (v == -1) {
 				panic("read(Server:117)", "Failed");
 			} else if (v == 0) {
-				std::cerr << "Client disconnected. Client socket: "
-						  << pollfds[i].fd << std::endl;
-				close(pollfds[i].fd);
-
-				pollfds[i] = pollfds[poll_index];
-				std::memset(&(pollfds[poll_index]), 0,
-							sizeof(pollfds[poll_index]));
-
-				poll_index--;
+				ejectClient(pollfds[i].fd, LOSTCONNECTION);
+				// poll_index--;
 			} else {
 				std::cout << "Client " << pollfds[i].fd
 						  << " =================== Start" << std::endl;
