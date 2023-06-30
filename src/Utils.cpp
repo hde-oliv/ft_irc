@@ -2,17 +2,19 @@
 
 #include <cstdio>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
-void *ft_memset(void *b, int c, size_t len) {
-	void		  *p;
-	unsigned char *s;
-
-	p = b;
-	s = (unsigned char *)b;
-	while (len-- > 0) *s++ = (unsigned char)c;
-	return (p);
+std::vector<std::string> splitString(std::string& source) {
+	std::vector<std::string> tokens;
+	std::string				 single_token;
+	std::istringstream		 sourceStream(source);
+	while (std::getline(sourceStream, single_token, ' ')) {
+		tokens.push_back(single_token);
+	}
+	return tokens;
 }
-
 void panic(std::string caller, std::string msg) {
 	std::cerr << "Exception on " << caller << ": " << msg << std::endl;
 

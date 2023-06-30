@@ -23,8 +23,32 @@ Server::Server(std::string const &password, int const &port) {
 }
 
 Server::~Server() {}
-void Server::ejectClient(int clientFd) {
+void Server::ejectClient(int clientFd, int reason) {
+	close(clientFd);
+	for (int i = 1; i < MAX_CLIENTS; i++) {
+		if (pollfds[i].fd == clientFd)
+			std::memset(&pollfds[i], 0, sizeof(pollfd));
+	}
 	clients.erase(clientFd);
+	poll_index--;
+	switch (reason) {
+		case LOSTCONNECTION:
+			std::cout << "Client connection lost. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		case QUITED:
+			std::cout << "Client left. (fd : " << clientFd << ")" << std::endl;
+			break;
+		case KICKED:
+			std::cout << "Client successfully kicked. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		default:
+			std::cout << "Client successfully ejected. (fd : " << clientFd
+					  << ")" << std::endl;
+			break;
+	}
+
 	std::cout << "Client successfully ejected. (fd : " << clientFd << ")"
 			  << std::endl;
 }
@@ -94,10 +118,16 @@ void Server::newClientHandling() {
 			newClient.setHost(inet_ntoa(client_address.sin_addr));
 			newClient.setFd(fd);
 
+			// this logic of assign poll_index + 1 will break when re-using
+			// indexes are needed.
+			// TODO: find next empty pollfds available to use instead of
+			// poll_index+1
 			clients[fd]					   = newClient;
 			pollfds[poll_index + 1].fd	   = fd;
 			pollfds[poll_index + 1].events = POLLIN;
 			poll_index++;
+			std::cout << "New connection stablished with "
+					  << newClient.getHost() << " on fd " << fd << std::endl;
 		} else {
 			std::cerr
 				<< "Maximum number of clients reached. Connection rejected"
@@ -113,8 +143,9 @@ void Server::clientEventHandling() {
 			Client *c = &clients[pollfds[i].fd];
 			(void)c;
 
-			char buffer[BUFFER_SIZE];  // TODO: use client buffer, currently
-									   // bugged
+			char buffer[BUFFER_SIZE];  // Messages overs 512 chars will not be
+									   // entirely read, thus, reentering this
+									   // functions in the next loop
 
 			std::memset(buffer, 0, BUFFER_SIZE);
 

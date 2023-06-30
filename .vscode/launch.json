@@ -8,10 +8,10 @@
 			"name": "ft_irc",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/ft_irc",
+			"program": "${workspaceFolder}/ircserv",
 			"args": [
 				"1234",
-				"8000"
+				"6667"
 			],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",

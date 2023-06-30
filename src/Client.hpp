@@ -17,6 +17,10 @@ class Client {
 	char r_buffer[BUFFER_SIZE];
 	char w_buffer[BUFFER_SIZE];
 
+	std::string getNickname() const;
+	std::string getUsername() const;
+	std::string getHost() const;
+
 	private:
 	int			fd;
 	std::string nickname;
