@@ -173,6 +173,8 @@ void Server::clientEventHandling() {
 			ssize_t v = read(pollfds[i].fd, buffer, BUFFER_SIZE);
 
 			if (v == -1) {
+				// TODO: Handle using netcat and closing the terminal
+				// ERRNO: Connection reset by peer
 				panic("Server::read", "Failed");
 			} else if (v == 0) {
 				ejectClient(pollfds[i].fd, LOSTCONNECTION);
