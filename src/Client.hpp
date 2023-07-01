@@ -13,19 +13,23 @@ class Client {
 
 	void setHost(std::string host);
 	void setFd(int fd);
-
-	char r_buffer[BUFFER_SIZE];
-	char w_buffer[BUFFER_SIZE];
+	void setReadData(std::string data);
+	void setSendData(std::string data);
+	void resetData();
 
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getHost() const;
+	std::string getReadData() const;
+	std::string getSendData() const;
 
 	private:
 	int			fd;
 	std::string nickname;
 	std::string username;
 	std::string host;
+	std::string readData;
+	std::string sendData;
 };
 
 // TODO: Consider this later

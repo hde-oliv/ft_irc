@@ -30,8 +30,12 @@ class Server {
 	private:
 	void	setupSocket();
 	void	clientEventHandling();
+	void	serverEventHandling();
 	void	newClientHandling();
+	void	readFromClient(pollfd p);
+	void	sendToClient(pollfd p);
 	void	ejectClient(int clientFd, int reason);
+	void	ejectAllClients();
 	pollfd &getAvailablePollFd();
 
 	std::string			  password;

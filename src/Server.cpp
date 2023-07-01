@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <cstdlib>
@@ -94,8 +95,9 @@ void Server::startServer() {
 
 	while (g_online) {
 		int r = poll(pollfds, poll_index + 1, -1);
+
 		if (r >= 0) {
-			newClientHandling();
+			serverEventHandling();
 			clientEventHandling();
 		}
 	}
@@ -110,7 +112,7 @@ pollfd &Server::getAvailablePollFd() {
 		if (pollfds[i].fd == 0) {
 			break;
 		}
-		i++;
+	i++;
 	}
 
 	if (i == MAX_CLIENTS) {
@@ -121,83 +123,96 @@ pollfd &Server::getAvailablePollFd() {
 	return pollfds[i];
 }
 
-void Server::newClientHandling() {
-	struct sockaddr_in client_address;
-	int				   addrlen = sizeof(client_address);
-
+void Server::serverEventHandling() {
 	if (pollfds[0].revents & POLLIN) {
-		int fd = accept(server_fd, (struct sockaddr *)&client_address,
-						(socklen_t *)&addrlen);
-
-		if (fd < 0) {
-			panic("Server::accept", "Failed");
-		}
-
-		if (poll_index < MAX_CLIENTS) {
-			Client	newClient;
-			pollfd &clientPollFd = getAvailablePollFd();
-
-			newClient.setHost(inet_ntoa(client_address.sin_addr));
-			newClient.setFd(fd);
-
-			clients[fd]			= newClient;
-			clientPollFd.fd		= fd;
-			clientPollFd.events = POLLIN;
-			poll_index++;
-			std::cout << "New connection stablished with "
-					  << newClient.getHost() << " on fd " << fd << std::endl;
-		} else {
-			std::cerr
-				<< "Maximum number of clients reached. Connection rejected"
-				<< std::endl;
-			close(fd);
-		}
+		newClientHandling();
 	}
 }
 
 void Server::clientEventHandling() {
 	for (int i = 1; i <= poll_index; i++) {
 		if (pollfds[i].revents & POLLIN) {
-			Client *c = &clients[pollfds[i].fd];
-			(void)c;
-
-			char buffer[BUFFER_SIZE];  // Messages overs 512 chars will not be
-									   // entirely read, thus, reentering this
-									   // functions in the next loop
-
-			// REVIEW: Shouldn't it discard everything after 512 and only read
-			// until a CRLF?
-
-			std::memset(buffer, 0, BUFFER_SIZE);
-
-			ssize_t v = read(pollfds[i].fd, buffer, BUFFER_SIZE);
-
-			if (v == -1) {
-				// TODO: Handle using netcat and closing the terminal
-				// ERRNO: Connection reset by peer
-				panic("Server::read", "Failed");
-			} else if (v == 0) {
-				ejectClient(pollfds[i].fd, LOSTCONNECTION);
-			} else {
-				std::cout << "Client " << pollfds[i].fd
-						  << " =================== Start" << std::endl;
-				std::cout << buffer;
-				std::cout << "Client " << pollfds[i].fd
-						  << " =================== End" << std::endl;
-
-				// TODO: Remove this later
-				if (write(pollfds[i].fd, buffer, v) == -1) {
-					panic("Server::write", "Failed");
-				}
-			}
+			readFromClient(pollfds[i]);
 		} else if (pollfds[i].revents & POLLOUT) {
-			std::cout << "POLLOUT caught" << std::endl;
+			// TODO: POLLOUT never occurs
+			sendToClient(pollfds[i]);
 		} else if (pollfds[i].revents & POLLERR) {
-			std::cout << "POLLERR caught" << std::endl;
-		} else if (pollfds[i].revents & POLLHUP) {
-			std::cout << "POLLHUP caught" << std::endl;
-		} else if (pollfds[i].revents & POLLNVAL) {
-			std::cout << "POLLNVAL caught" << std::endl;
+		 	std::cout << "POLLERR caught" << std::endl;
+			ejectClient(pollfds[i].fd, -1);
 		}
+
+		// NOTE: I do not know if they are necessary
+		// else if (pollfds[i].revents & POLLHUP) {
+		// 	std::cout << "POLLHUP caught" << std::endl;
+		// } else if (pollfds[i].revents & POLLNVAL) {
+		// 	std::cout << "POLLNVAL caught" << std::endl;
+		// }
+	}
+}
+
+void Server::readFromClient(pollfd p) {
+	Client *c		= &clients[p.fd];
+
+	char	buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+
+	std::memset(buffer, 0, BUFFER_SIZE);
+	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+
+	if (bytesRead == -1) {
+		// TODO: implement ejectAllClients();
+		panic("Server::recv", "Failed");
+	} else if (bytesRead == 0) {
+		ejectClient(p.fd, LOSTCONNECTION);
+	} else {
+		c->setReadData(buffer);
+		
+		// if (c->getReadData().find("\r\n") != std::string::npos) {
+		 	// TODO: parse message and set sendData string
+		// }
+		c->setSendData(c->getReadData());
+	}
+
+	std::cout << "Client " << p.fd << " sent: ";
+	std::cout << c->getReadData();
+}
+
+void Server::sendToClient(pollfd p) {
+	Client *c		= &clients[p.fd];
+
+	if (send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0) == -1) {
+		panic("Server::send", "Failed");
+	}
+	c->resetData();
+}
+
+void Server::newClientHandling() {
+	struct sockaddr_in client_address;
+	int				   addrlen = sizeof(client_address);
+
+	int fd = accept(server_fd, (struct sockaddr *)&client_address,
+					(socklen_t *)&addrlen);
+
+	if (fd < 0) {
+		panic("Server::accept", "Failed");
+	}
+
+	if (poll_index < MAX_CLIENTS) {
+		Client	newClient;
+		pollfd &clientPollFd = getAvailablePollFd();
+
+		newClient.setHost(inet_ntoa(client_address.sin_addr));
+		newClient.setFd(fd);
+
+		clients[fd]			= newClient;
+		clientPollFd.fd		= fd;
+		clientPollFd.events = POLLIN;
+		poll_index++;
+		std::cout << "New connection stablished with " << newClient.getHost()
+				  << " on fd " << fd << std::endl;
+	} else {
+		std::cerr << "Maximum number of clients reached. Connection rejected"
+				  << std::endl;
+		close(fd);
 	}
 }
