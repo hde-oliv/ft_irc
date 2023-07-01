@@ -7,7 +7,9 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "Channel.hpp"
 #include "Client.hpp"
@@ -17,9 +19,6 @@
 #define LOSTCONNECTION 0
 #define QUITED 1
 #define KICKED 2
-
-#include <map>
-#include <vector>
 
 class Server {
 	public:
