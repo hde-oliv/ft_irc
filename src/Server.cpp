@@ -30,7 +30,7 @@ void Server::setupSocket() {
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port		= htons(port);
 
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	server_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
 	if (server_fd < 0) {
 		panic("socket(Server:36)", "Failed");
