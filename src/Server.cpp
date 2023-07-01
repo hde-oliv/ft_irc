@@ -12,7 +12,7 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 
-extern bool g_online;
+extern bool g_online;  // TODO: Consider using a singleton, globals are ugly
 
 Server::Server() {}
 
@@ -23,14 +23,18 @@ Server::Server(std::string const &password, int const &port) {
 }
 
 Server::~Server() {}
+
 void Server::ejectClient(int clientFd, int reason) {
 	close(clientFd);
+
 	for (int i = 1; i < MAX_CLIENTS; i++) {
 		if (pollfds[i].fd == clientFd)
 			std::memset(&pollfds[i], 0, sizeof(pollfd));
 	}
+
 	clients.erase(clientFd);
 	poll_index--;
+
 	switch (reason) {
 		case LOSTCONNECTION:
 			std::cout << "Client connection lost. (fd : " << clientFd << ")"
@@ -48,6 +52,7 @@ void Server::ejectClient(int clientFd, int reason) {
 					  << ")" << std::endl;
 	}
 }
+
 void Server::setupSocket() {
 	int opt = 1;
 	int err;
@@ -56,7 +61,7 @@ void Server::setupSocket() {
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port		= htons(port);
 
-	server_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_fd < 0) {
 		panic("socket(Server:36)", "Failed");
@@ -82,6 +87,7 @@ void Server::setupSocket() {
 void Server::startServer() {
 	setupSocket();
 	std::memset(pollfds, 0, sizeof(pollfd) * MAX_CLIENTS);
+
 	pollfds[0].fd	  = server_fd;
 	pollfds[0].events = POLLIN;
 	poll_index		  = 0;
@@ -99,16 +105,19 @@ void Server::startServer() {
 
 pollfd &Server::getAvailablePollFd() {
 	int i = 1;
+
 	while (i < MAX_CLIENTS) {
 		if (pollfds[i].fd == 0) {
 			break;
 		}
 		i++;
 	}
+
 	if (i == MAX_CLIENTS) {
 		panic("Server:getAvailablePollFd",
 			  "Server could not find an available pollfd.");
 	}
+
 	return pollfds[i];
 }
 
