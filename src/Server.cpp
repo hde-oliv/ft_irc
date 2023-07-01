@@ -64,23 +64,23 @@ void Server::setupSocket() {
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_fd < 0) {
-		panic("socket(Server:36)", "Failed");
+		panic("Server::socket", "Failed");
 	}
 
 	err = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
 					 sizeof(opt));
 	if (err) {
-		panic("setsockopt(Server:43)", "Failed");
+		panic("Server::setsockopt", "Failed");
 	}
 
 	err = bind(server_fd, (struct sockaddr *)&(address), sizeof(address));
 	if (err < 0) {
-		panic("bind(Server:48)", "Failed");
+		panic("Server::bind", "Failed");
 	}
 
 	err = listen(server_fd, SOMAXCONN);
 	if (err < 0) {
-		panic("listen(Server:53)", "Failed");
+		panic("Server::listen", "Failed");
 	}
 }
 
@@ -114,7 +114,7 @@ pollfd &Server::getAvailablePollFd() {
 	}
 
 	if (i == MAX_CLIENTS) {
-		panic("Server:getAvailablePollFd",
+		panic("Server::getAvailablePollFd",
 			  "Server could not find an available pollfd.");
 	}
 
@@ -128,8 +128,9 @@ void Server::newClientHandling() {
 	if (pollfds[0].revents & POLLIN) {
 		int fd = accept(server_fd, (struct sockaddr *)&client_address,
 						(socklen_t *)&addrlen);
+
 		if (fd < 0) {
-			panic("accept(Server:83)", "Failed");
+			panic("Server::accept", "Failed");
 		}
 
 		if (poll_index < MAX_CLIENTS) {
@@ -138,6 +139,7 @@ void Server::newClientHandling() {
 
 			newClient.setHost(inet_ntoa(client_address.sin_addr));
 			newClient.setFd(fd);
+
 			clients[fd]			= newClient;
 			clientPollFd.fd		= fd;
 			clientPollFd.events = POLLIN;
@@ -163,15 +165,17 @@ void Server::clientEventHandling() {
 									   // entirely read, thus, reentering this
 									   // functions in the next loop
 
+			// REVIEW: Shouldn't it discard everything after 512 and only read
+			// until a CRLF?
+
 			std::memset(buffer, 0, BUFFER_SIZE);
 
 			ssize_t v = read(pollfds[i].fd, buffer, BUFFER_SIZE);
 
 			if (v == -1) {
-				panic("read(Server:117)", "Failed");
+				panic("Server::read", "Failed");
 			} else if (v == 0) {
 				ejectClient(pollfds[i].fd, LOSTCONNECTION);
-				// poll_index--;
 			} else {
 				std::cout << "Client " << pollfds[i].fd
 						  << " =================== Start" << std::endl;
@@ -181,7 +185,7 @@ void Server::clientEventHandling() {
 
 				// TODO: Remove this later
 				if (write(pollfds[i].fd, buffer, v) == -1) {
-					panic("write(Server:137)", "Failed");
+					panic("Server::write", "Failed");
 				}
 			}
 		} else if (pollfds[i].revents & POLLOUT) {
