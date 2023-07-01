@@ -1,3 +1,4 @@
+#include <csignal>
 #include <cstdlib>
 #include <exception>
 #include <fstream>
@@ -6,6 +7,14 @@
 
 #include "Server.hpp"
 #include "Utils.hpp"
+
+bool g_online = true;
+
+void signalHandler(int signal) {
+	if (signal == SIGINT) {
+		g_online = false;
+	}
+}
 
 void validateInput(int argc, char *argv[]) {
 	if (argc != 3) {
@@ -23,6 +32,7 @@ void validateInput(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+	std::signal(SIGINT, signalHandler);
 	try {
 		validateInput(argc, argv);
 		Server srv(argv[1], std::atoi(argv[2]));

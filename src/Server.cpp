@@ -12,6 +12,8 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 
+extern bool g_online;
+
 Server::Server() {}
 
 Server::Server(std::string const &password, int const &port) {
@@ -21,7 +23,31 @@ Server::Server(std::string const &password, int const &port) {
 }
 
 Server::~Server() {}
-
+void Server::ejectClient(int clientFd, int reason) {
+	close(clientFd);
+	for (int i = 1; i < MAX_CLIENTS; i++) {
+		if (pollfds[i].fd == clientFd)
+			std::memset(&pollfds[i], 0, sizeof(pollfd));
+	}
+	clients.erase(clientFd);
+	poll_index--;
+	switch (reason) {
+		case LOSTCONNECTION:
+			std::cout << "Client connection lost. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		case QUITED:
+			std::cout << "Client left. (fd : " << clientFd << ")" << std::endl;
+			break;
+		case KICKED:
+			std::cout << "Client successfully kicked. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		default:
+			std::cout << "Client successfully ejected. (fd : " << clientFd
+					  << ")" << std::endl;
+	}
+}
 void Server::setupSocket() {
 	int opt = 1;
 	int err;
@@ -55,26 +81,38 @@ void Server::setupSocket() {
 
 void Server::startServer() {
 	setupSocket();
-
+	std::memset(pollfds, 0, sizeof(pollfd) * MAX_CLIENTS);
 	pollfds[0].fd	  = server_fd;
 	pollfds[0].events = POLLIN;
 	poll_index		  = 0;
 
-	while (true) {
+	while (g_online) {
 		int r = poll(pollfds, poll_index + 1, -1);
-
-		if (r < 0) {
-			panic("poll(Server:67)", "Failed");
+		if (r >= 0) {
+			newClientHandling();
+			clientEventHandling();
 		}
-
-		serverEventHandling();
-		clientEventHandling();
 	}
 
 	close(server_fd);
 }
 
-void Server::serverEventHandling() {
+pollfd &Server::getAvailablePollFd() {
+	int i = 1;
+	while (i < MAX_CLIENTS) {
+		if (pollfds[i].fd == 0) {
+			break;
+		}
+		i++;
+	}
+	if (i == MAX_CLIENTS) {
+		panic("Server:getAvailablePollFd",
+			  "Server could not find an available pollfd.");
+	}
+	return pollfds[i];
+}
+
+void Server::newClientHandling() {
 	struct sockaddr_in client_address;
 	int				   addrlen = sizeof(client_address);
 
@@ -86,15 +124,17 @@ void Server::serverEventHandling() {
 		}
 
 		if (poll_index < MAX_CLIENTS) {
-			Client *newClient = new Client;
+			Client	newClient;
+			pollfd &clientPollFd = getAvailablePollFd();
 
-			newClient->setHost(inet_ntoa(client_address.sin_addr));
-			newClient->setFd(fd);
-
-			clients[fd]					   = *newClient;
-			pollfds[poll_index + 1].fd	   = fd;
-			pollfds[poll_index + 1].events = POLLIN;
+			newClient.setHost(inet_ntoa(client_address.sin_addr));
+			newClient.setFd(fd);
+			clients[fd]			= newClient;
+			clientPollFd.fd		= fd;
+			clientPollFd.events = POLLIN;
 			poll_index++;
+			std::cout << "New connection stablished with "
+					  << newClient.getHost() << " on fd " << fd << std::endl;
 		} else {
 			std::cerr
 				<< "Maximum number of clients reached. Connection rejected"
@@ -110,8 +150,9 @@ void Server::clientEventHandling() {
 			Client *c = &clients[pollfds[i].fd];
 			(void)c;
 
-			char buffer[BUFFER_SIZE];  // TODO: use client buffer, currently
-									   // bugged
+			char buffer[BUFFER_SIZE];  // Messages overs 512 chars will not be
+									   // entirely read, thus, reentering this
+									   // functions in the next loop
 
 			std::memset(buffer, 0, BUFFER_SIZE);
 
@@ -120,15 +161,8 @@ void Server::clientEventHandling() {
 			if (v == -1) {
 				panic("read(Server:117)", "Failed");
 			} else if (v == 0) {
-				std::cerr << "Client disconnected. Client socket: "
-						  << pollfds[i].fd << std::endl;
-				close(pollfds[i].fd);
-
-				pollfds[i] = pollfds[poll_index];
-				std::memset(&(pollfds[poll_index]), 0,
-							sizeof(pollfds[poll_index]));
-
-				poll_index--;
+				ejectClient(pollfds[i].fd, LOSTCONNECTION);
+				// poll_index--;
 			} else {
 				std::cout << "Client " << pollfds[i].fd
 						  << " =================== Start" << std::endl;
@@ -141,6 +175,14 @@ void Server::clientEventHandling() {
 					panic("write(Server:137)", "Failed");
 				}
 			}
+		} else if (pollfds[i].revents & POLLOUT) {
+			std::cout << "POLLOUT caught" << std::endl;
+		} else if (pollfds[i].revents & POLLERR) {
+			std::cout << "POLLERR caught" << std::endl;
+		} else if (pollfds[i].revents & POLLHUP) {
+			std::cout << "POLLHUP caught" << std::endl;
+		} else if (pollfds[i].revents & POLLNVAL) {
+			std::cout << "POLLNVAL caught" << std::endl;
 		}
 	}
 }

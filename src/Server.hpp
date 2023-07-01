@@ -12,7 +12,11 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-#define MAX_CLIENTS 5
+#define MAX_CLIENTS 3
+// Reasons for ajecting a client
+#define LOSTCONNECTION 0
+#define QUITED 1
+#define KICKED 2
 
 #include <map>
 #include <vector>
@@ -25,9 +29,11 @@ class Server {
 	void startServer();
 
 	private:
-	void setupSocket();
-	void clientEventHandling();
-	void serverEventHandling();
+	void	setupSocket();
+	void	clientEventHandling();
+	void	newClientHandling();
+	void	ejectClient(int clientFd, int reason);
+	pollfd &getAvailablePollFd();
 
 	std::string			  password;
 	int					  port;
