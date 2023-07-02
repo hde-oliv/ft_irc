@@ -15,12 +15,15 @@ class Client {
 	Client(void);
 	~Client(void);
 
-	void setHost(std::string host);
 	void setFd(int fd);
 	void setReadData(std::string data);
 	void setSendData(std::string data);
-	void setServerPassword(std::string password);
+	void setHostname(std::string name);
+	void setServername(std::string name);
+	void setUsername(std::string name);
+	void setRealname(std::string name);
 	void setRegistration(int flag);
+	void setKnowPassword();
 	void setWelcome();
 	void resetAllData();
 	void resetReadData();
@@ -29,23 +32,27 @@ class Client {
 	int			getFd() const;
 	int			getRegistration() const;
 	bool		getWelcome() const;
+	bool		getKnowPassword() const;
 	std::string getNickname() const;
 	std::string getUsername() const;
-	std::string getHost() const;
+	std::string getHostname() const;
+	std::string getServername() const;
+	std::string getRealname() const;
 	std::string getReadData() const;
 	std::string getSendData() const;
-	std::string getServerPassword() const;
 
 	private:
 	int			fd;
 	int			registration : 4;  // PASS(2) - USER(4) - NICK(8)
 	bool		welcome;		   // If the welcome message was sent
+	bool		knowPassword;	   // If the client knows the server password
 	std::string nickname;
 	std::string username;
-	std::string host;
+	std::string hostname;
+	std::string servername;
+	std::string realname;
 	std::string readData;
 	std::string sendData;
-	std::string serverPassword;
 };
 
 // TODO: Consider this later
