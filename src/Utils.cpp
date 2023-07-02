@@ -15,10 +15,12 @@ std::vector<std::string> splitString(std::string& source) {
 	}
 	return tokens;
 }
-void panic(std::string caller, std::string msg) {
+void panic(std::string caller, std::string msg, int mode) {
 	std::cerr << "Exception on " << caller << ": " << msg << std::endl;
 
 	perror("ERRNO");  // TODO: Remove this later
 
-	throw std::exception();
+	if (mode == P_EXIT) {
+		throw std::exception();
+	}
 }
