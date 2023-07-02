@@ -166,24 +166,26 @@ void Server::readFromClient(pollfd p) {
 	} else {
 		c->setReadData(buffer);
 
-		// if (c->getReadData().find("\r\n") != std::string::npos) {
-		// TODO: parse message and set sendData string
-		// }
-		c->setSendData(c->getReadData());
+		// TODO: it needs to be \r\n, but can't send \r in WinTerm
+		if (c->getReadData().find("\n") != std::string::npos) {
+			// TODO: parse message and set sendData string
+			std::cout << "Client " << p.fd << " sent: ";
+			std::cout << c->getReadData();
+			c->setSendData(c->getReadData());
+		}
 	}
-
-	std::cout << "Client " << p.fd << " sent: ";
-	std::cout << c->getReadData();
 }
 
 void Server::sendToClient(pollfd p) {
 	Client *c = &clients[p.fd];
+	int		r;
 
-	if (send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0) ==
-		-1) {
+	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
+	if (r == -1) {
 		panic("Server::send", "Failed");
+	} else if (r != 0) {
+		c->resetData();
 	}
-	c->resetData();
 }
 
 void Server::newClientHandling() {
