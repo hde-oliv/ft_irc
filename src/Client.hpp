@@ -15,6 +15,7 @@ class Client {
 	void setFd(int fd);
 	void setReadData(std::string data);
 	void setSendData(std::string data);
+	void setServerPassword(std::string password);
 	void resetData();
 
 	std::string getNickname() const;
@@ -22,6 +23,7 @@ class Client {
 	std::string getHost() const;
 	std::string getReadData() const;
 	std::string getSendData() const;
+	std::string getServerPassword() const;
 
 	private:
 	int			fd;
@@ -30,6 +32,7 @@ class Client {
 	std::string host;
 	std::string readData;
 	std::string sendData;
+	std::string serverPassword;
 };
 
 // TODO: Consider this later

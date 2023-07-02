@@ -21,6 +21,8 @@
 #define KICKED 2
 
 class Server {
+	typedef std::vector<std::string> Tokens;
+
 	public:
 	Server(void);
 	Server(std::string const &password, int const &port);
@@ -46,6 +48,13 @@ class Server {
 	std::vector<Channel>  channels;
 	struct pollfd		  pollfds[MAX_CLIENTS];
 	struct sockaddr_in	  address;
+
+	std::string executeClientMessage(pollfd p, std::string msg);
+	void		setupCommandMap();
+	std::string pass(pollfd p, Tokens &tks);
+	std::string user(pollfd p, Tokens &tks);
+	std::string nick(pollfd p, Tokens &tks);
+	std::string quit(pollfd p, Tokens &tks);
 };
 
 #endif

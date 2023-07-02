@@ -25,35 +25,6 @@ Server::Server(std::string const &password, int const &port) {
 
 Server::~Server() {}
 
-void Server::ejectClient(int clientFd, int reason) {
-	close(clientFd);
-
-	for (int i = 1; i < MAX_CLIENTS; i++) {
-		if (pollfds[i].fd == clientFd)
-			std::memset(&pollfds[i], 0, sizeof(pollfd));
-	}
-
-	clients.erase(clientFd);
-	poll_index--;
-
-	switch (reason) {
-		case LOSTCONNECTION:
-			std::cout << "Client connection lost. (fd : " << clientFd << ")"
-					  << std::endl;
-			break;
-		case QUITED:
-			std::cout << "Client left. (fd : " << clientFd << ")" << std::endl;
-			break;
-		case KICKED:
-			std::cout << "Client successfully kicked. (fd : " << clientFd << ")"
-					  << std::endl;
-			break;
-		default:
-			std::cout << "Client successfully ejected. (fd : " << clientFd
-					  << ")" << std::endl;
-	}
-}
-
 void Server::setupSocket() {
 	int opt = 1;
 	int err;
@@ -105,24 +76,6 @@ void Server::startServer() {
 	close(server_fd);
 }
 
-pollfd &Server::getAvailablePollFd() {
-	int i = 1;
-
-	while (i < MAX_CLIENTS) {
-		if (pollfds[i].fd == 0) {
-			break;
-		}
-		i++;
-	}
-
-	if (i == MAX_CLIENTS) {
-		panic("Server::getAvailablePollFd",
-			  "Server could not find an available pollfd.", P_CONTINUE);
-	}
-
-	return pollfds[i];
-}
-
 void Server::serverEventHandling() {
 	if (pollfds[0].revents & POLLIN) {
 		newClientHandling();
@@ -146,47 +99,6 @@ void Server::clientEventHandling() {
 		// } else if (pollfds[i].revents & POLLNVAL) {
 		// 	std::cout << "POLLNVAL caught" << std::endl;
 		// }
-	}
-}
-
-void Server::readFromClient(pollfd p) {
-	Client *c = &clients[p.fd];
-
-	char	buffer[BUFFER_SIZE];
-	ssize_t bytesRead;
-
-	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
-
-	if (bytesRead == -1) {
-		// TODO: implement ejectAllClients();
-		ejectClient(p.fd, LOSTCONNECTION);
-		panic("Server::recv", "Failed", P_CONTINUE);
-		return;
-	} else if (bytesRead == 0) {
-		ejectClient(p.fd, LOSTCONNECTION);
-	} else {
-		c->setReadData(buffer);
-
-		// TODO: it needs to be \r\n, but I can't send \r in Windows Terminal
-		if (c->getReadData().find("\n") != std::string::npos) {
-			// TODO: parse message and set sendData string
-			std::cout << "Client " << p.fd << " sent: ";
-			std::cout << c->getReadData();
-			c->setSendData(c->getReadData());
-		}
-	}
-}
-
-void Server::sendToClient(pollfd p) {
-	Client *c = &clients[p.fd];
-	int		r;
-
-	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
-	if (r == -1) {
-		panic("Server::send", "Failed", P_CONTINUE);
-	} else if (r != 0) {
-		c->resetData();
 	}
 }
 
@@ -219,5 +131,137 @@ void Server::newClientHandling() {
 		std::cerr << "Maximum number of clients reached. Connection rejected"
 				  << std::endl;
 		close(fd);
+	}
+}
+
+void Server::readFromClient(pollfd p) {
+	Client *c = &clients[p.fd];
+
+	char	buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+
+	std::memset(buffer, 0, BUFFER_SIZE);
+	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+
+	if (bytesRead == -1) {
+		// TODO: implement ejectAllClients();
+		ejectClient(p.fd, LOSTCONNECTION);
+		panic("Server::recv", "Failed", P_CONTINUE);
+		return;
+	} else if (bytesRead == 0) {
+		ejectClient(p.fd, LOSTCONNECTION);
+	} else {
+		c->setReadData(buffer);
+
+		if (c->getReadData().find("\n") != std::string::npos) {
+			std::cout << "Client " << p.fd << " sent: ";
+			std::cout << c->getReadData();
+
+			std::string response = executeClientMessage(p, c->getReadData());
+
+			// TODO: Remove this later
+			if (response == "KICK CLIENT") {
+				ejectClient(p.fd, -1);
+			}
+
+			c->setSendData(response);
+		}
+	}
+}
+
+void Server::sendToClient(pollfd p) {
+	Client *c = &clients[p.fd];
+	int		r;
+
+	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
+	if (r == -1) {
+		panic("Server::send", "Failed", P_CONTINUE);
+	} else if (r > 0) {
+		c->resetData();
+	}
+}
+
+void Server::ejectClient(int clientFd, int reason) {
+	close(clientFd);
+
+	for (int i = 1; i < MAX_CLIENTS; i++) {
+		if (pollfds[i].fd == clientFd)
+			std::memset(&pollfds[i], 0, sizeof(pollfd));
+	}
+
+	clients.erase(clientFd);
+	poll_index--;
+
+	switch (reason) {
+		case LOSTCONNECTION:
+			std::cout << "Client connection lost. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		case QUITED:
+			std::cout << "Client left. (fd : " << clientFd << ")" << std::endl;
+			break;
+		case KICKED:
+			std::cout << "Client successfully kicked. (fd : " << clientFd << ")"
+					  << std::endl;
+			break;
+		default:
+			std::cout << "Client successfully ejected. (fd : " << clientFd
+					  << ")" << std::endl;
+	}
+}
+
+pollfd &Server::getAvailablePollFd() {
+	int i = 1;
+
+	while (i < MAX_CLIENTS) {
+		if (pollfds[i].fd == 0) {
+			break;
+		}
+		i++;
+	}
+
+	if (i == MAX_CLIENTS) {
+		panic("Server::getAvailablePollFd",
+			  "Server could not find an available pollfd.", P_CONTINUE);
+	}
+
+	return pollfds[i];
+}
+
+// Command section
+
+std::string Server::executeClientMessage(pollfd p, std::string msg) {
+	std::string lookup[]   = { "PASS", "USER", "NICK", "QUIT" };
+	int			lookupSize = 4;
+
+	Tokens		tks = splitString(msg);
+	int			cmd = -1;
+	std::string command;
+
+	if (tks[0][0] == ':') {
+		command = tks[1];
+	} else {
+		command = tks[0];
+	}
+
+	for (int i = 0; i < lookupSize; i++) {
+		if (lookup[i] == command) {
+			cmd = i;
+			break;
+		}
+	}
+
+	switch (cmd) {
+		case 0:
+			return pass(p, tks);
+		case 1:
+			return user(p, tks);
+		case 2:
+			return nick(p, tks);
+		case 3:
+			return quit(p, tks);
+		case -1:
+		default:
+			return "KICK CLIENT";  // TODO: Remove this later
 	}
 }
