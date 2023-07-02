@@ -28,6 +28,8 @@ std::string Server::welcome(pollfd p) {
 	ss << " localhost 0.1 iowstRb- biklmnopstvrRcCNuMTD";
 	ss << "\r\n";
 
+	ss << motd(p);
+
 	return ss.str();
 }
 
@@ -98,6 +100,25 @@ std::string Server::nick(pollfd p, Tokens &tks) {
 	c->resetReadData();
 
 	return "";
+}
+
+std::string Server::motd(pollfd p) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 375 " << c->getNickname();
+	ss << " :- localhost Message of the day -";
+	ss << "\r\n";
+
+	ss << ":localhost 372 " << c->getNickname();
+	ss << " :- Welcome to the FT_IRC!";
+	ss << "\r\n";
+
+	ss << ":localhost 376 " << c->getNickname();
+	ss << " :End of MOTD command.";
+	ss << "\r\n";
+
+	return ss.str();
 }
 
 std::string Server::quit(pollfd p, Tokens &tks) {

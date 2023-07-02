@@ -56,6 +56,7 @@ class Server {
 	std::string user(pollfd p, Tokens &tks);
 	std::string nick(pollfd p, Tokens &tks);
 	std::string quit(pollfd p, Tokens &tks);
+	std::string motd(pollfd p);
 	std::string welcome(pollfd p);
 };
 
