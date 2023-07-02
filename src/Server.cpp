@@ -112,7 +112,7 @@ pollfd &Server::getAvailablePollFd() {
 		if (pollfds[i].fd == 0) {
 			break;
 		}
-	i++;
+		i++;
 	}
 
 	if (i == MAX_CLIENTS) {
@@ -134,10 +134,9 @@ void Server::clientEventHandling() {
 		if (pollfds[i].revents & POLLIN) {
 			readFromClient(pollfds[i]);
 		} else if (pollfds[i].revents & POLLOUT) {
-			// TODO: POLLOUT never occurs
 			sendToClient(pollfds[i]);
 		} else if (pollfds[i].revents & POLLERR) {
-		 	std::cout << "POLLERR caught" << std::endl;
+			std::cout << "POLLERR caught" << std::endl;
 			ejectClient(pollfds[i].fd, -1);
 		}
 
@@ -151,7 +150,7 @@ void Server::clientEventHandling() {
 }
 
 void Server::readFromClient(pollfd p) {
-	Client *c		= &clients[p.fd];
+	Client *c = &clients[p.fd];
 
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
@@ -166,9 +165,9 @@ void Server::readFromClient(pollfd p) {
 		ejectClient(p.fd, LOSTCONNECTION);
 	} else {
 		c->setReadData(buffer);
-		
+
 		// if (c->getReadData().find("\r\n") != std::string::npos) {
-		 	// TODO: parse message and set sendData string
+		// TODO: parse message and set sendData string
 		// }
 		c->setSendData(c->getReadData());
 	}
@@ -178,9 +177,10 @@ void Server::readFromClient(pollfd p) {
 }
 
 void Server::sendToClient(pollfd p) {
-	Client *c		= &clients[p.fd];
+	Client *c = &clients[p.fd];
 
-	if (send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0) == -1) {
+	if (send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0) ==
+		-1) {
 		panic("Server::send", "Failed");
 	}
 	c->resetData();
@@ -206,7 +206,7 @@ void Server::newClientHandling() {
 
 		clients[fd]			= newClient;
 		clientPollFd.fd		= fd;
-		clientPollFd.events = POLLIN;
+		clientPollFd.events = POLLIN | POLLOUT | POLLERR;
 		poll_index++;
 		std::cout << "New connection stablished with " << newClient.getHost()
 				  << " on fd " << fd << std::endl;
