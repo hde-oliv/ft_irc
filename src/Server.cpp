@@ -177,7 +177,7 @@ void Server::sendToClient(pollfd p) {
 	if (r == -1) {
 		panic("Server::send", "Failed", P_CONTINUE);
 	} else if (r > 0) {
-		c->resetData();
+		c->resetAllData();
 	}
 }
 
@@ -231,12 +231,28 @@ pollfd &Server::getAvailablePollFd() {
 // Command section
 
 std::string Server::executeClientMessage(pollfd p, std::string msg) {
-	std::string lookup[]   = { "PASS", "USER", "NICK", "QUIT" };
-	int			lookupSize = 4;
+	std::string registration[] = { "PASS", "USER", "NICK" };
+	std::string lookup[]	   = { "" };
 
-	Tokens		tks = splitString(msg);
-	int			cmd = -1;
+	Client *c	= &clients[p.fd];
+	Tokens	tks = splitString(msg);
+
+	if (c->getRegistration() != (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
+		if (tks[0] == "PASS")
+			return pass(p, tks);
+		else if (tks[0] == "USER")
+			return user(p, tks);
+		else if (tks[0] == "NICK")
+			return nick(p, tks);
+	}
+
+	if (c->getWelcome() == false) {
+		c->setWelcome();
+		return welcome(p);
+	}
+
 	std::string command;
+	int			cmd = -1;
 
 	if (tks[0][0] == ':') {
 		command = tks[1];
@@ -244,7 +260,7 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		command = tks[0];
 	}
 
-	for (int i = 0; i < lookupSize; i++) {
+	for (int i = 0; i < 1; i++) {
 		if (lookup[i] == command) {
 			cmd = i;
 			break;
@@ -252,14 +268,6 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	}
 
 	switch (cmd) {
-		case 0:
-			return pass(p, tks);
-		case 1:
-			return user(p, tks);
-		case 2:
-			return nick(p, tks);
-		case 3:
-			return quit(p, tks);
 		case -1:
 		default:
 			return "KICK CLIENT";  // TODO: Remove this later

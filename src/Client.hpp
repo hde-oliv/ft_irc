@@ -6,6 +6,10 @@
 #define MAX_NICKNAME 9
 #define BUFFER_SIZE 512
 
+#define PASS_FLAG 2
+#define USER_FLAG 4
+#define NICK_FLAG 8
+
 class Client {
 	public:
 	Client(void);
@@ -16,8 +20,15 @@ class Client {
 	void setReadData(std::string data);
 	void setSendData(std::string data);
 	void setServerPassword(std::string password);
-	void resetData();
+	void setRegistration(int flag);
+	void setWelcome();
+	void resetAllData();
+	void resetReadData();
+	void resetSendData();
 
+	int			getFd() const;
+	int			getRegistration() const;
+	bool		getWelcome() const;
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getHost() const;
@@ -27,6 +38,8 @@ class Client {
 
 	private:
 	int			fd;
+	int			registration : 4;  // PASS(2) - USER(4) - NICK(8)
+	bool		welcome;		   // If the welcome message was sent
 	std::string nickname;
 	std::string username;
 	std::string host;
