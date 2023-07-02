@@ -1,5 +1,7 @@
 #include "Utils.hpp"
 
+#include <ctime>
+
 std::vector<std::string> splitString(std::string& source) {
 	std::vector<std::string> tokens;
 	std::string				 singleToken;
@@ -39,4 +41,14 @@ void panic(std::string caller, std::string msg, int mode) {
 	if (mode == P_EXIT) {
 		throw std::exception();
 	}
+}
+
+std::string getDatetime() {
+	std::time_t currentTime = std::time(NULL);
+	std::tm*	localTime	= std::localtime(&currentTime);
+
+	char buffer[80];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
+
+	return std::string(buffer);
 }

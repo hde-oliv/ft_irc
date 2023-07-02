@@ -22,6 +22,7 @@ class Client {
 	void setServername(std::string name);
 	void setUsername(std::string name);
 	void setRealname(std::string name);
+	void setNickname(std::string name);
 	void setRegistration(int flag);
 	void setKnowPassword();
 	void setWelcome();

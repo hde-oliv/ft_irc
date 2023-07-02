@@ -28,6 +28,7 @@ void Client::setFd(int fd) { this->fd = fd; }
 void Client::setUsername(std::string name) { username = name; }
 void Client::setHostname(std::string name) { hostname = name; }
 void Client::setRealname(std::string name) { realname = name; }
+void Client::setNickname(std::string name) { nickname = name; }
 void Client::setServername(std::string name) { servername = name; }
 void Client::setSendData(std::string data) { sendData = data; }
 void Client::setReadData(std::string data) { readData += data; }

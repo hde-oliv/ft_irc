@@ -40,6 +40,7 @@ class Server {
 	void	ejectAllClients();
 	pollfd &getAvailablePollFd();
 
+	std::string			  creationDatetime;
 	std::string			  password;
 	int					  port;
 	int					  server_fd;

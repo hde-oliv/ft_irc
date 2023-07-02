@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -26,4 +27,5 @@
 
 void					 panic(std::string caller, std::string msg, int mode);
 std::vector<std::string> splitString(std::string& source);
+std::string				 getDatetime(void);
 #endif

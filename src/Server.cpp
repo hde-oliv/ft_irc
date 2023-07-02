@@ -18,9 +18,10 @@ extern bool g_online;  // TODO: Consider using a singleton, globals are ugly
 Server::Server() {}
 
 Server::Server(std::string const &password, int const &port) {
-	this->password	= password;
-	this->port		= port;
-	this->server_fd = 0;
+	this->password		   = password;
+	this->port			   = port;
+	this->server_fd		   = 0;
+	this->creationDatetime = getDatetime();
 }
 
 Server::~Server() {}
@@ -118,15 +119,15 @@ void Server::newClientHandling() {
 		Client	newClient;
 		pollfd &clientPollFd = getAvailablePollFd();
 
-		newClient.setHost(inet_ntoa(client_address.sin_addr));
+		newClient.setHostname(inet_ntoa(client_address.sin_addr));
 		newClient.setFd(fd);
 
 		clients[fd]			= newClient;
 		clientPollFd.fd		= fd;
 		clientPollFd.events = POLLIN | POLLOUT | POLLERR;
 		poll_index++;
-		std::cout << "New connection stablished with " << newClient.getHost()
-				  << " on fd " << fd << std::endl;
+		std::cout << "New connection stablished with "
+				  << newClient.getHostname() << " on fd " << fd << std::endl;
 	} else {
 		std::cerr << "Maximum number of clients reached. Connection rejected"
 				  << std::endl;
