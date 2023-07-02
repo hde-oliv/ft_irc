@@ -1,11 +1,5 @@
 #include "Utils.hpp"
 
-#include <cstdio>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
 std::vector<std::string> splitString(std::string& source) {
 	std::vector<std::string> tokens;
 	std::string				 single_token;
@@ -16,9 +10,12 @@ std::vector<std::string> splitString(std::string& source) {
 	return tokens;
 }
 void panic(std::string caller, std::string msg, int mode) {
-	std::cerr << "Exception on " << caller << ": " << msg << std::endl;
+	std::cerr << RED << "Exception on " << caller << RESET << ": " << msg
+			  << std::endl;
 
-	perror("ERRNO");  // TODO: Remove this later
+	// TODO: Remove this later
+	std::cerr << BLUE << "ERRNO: " << RESET << std::strerror(errno)
+			  << std ::endl;
 
 	if (mode == P_EXIT) {
 		throw std::exception();
