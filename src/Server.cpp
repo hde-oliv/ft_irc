@@ -154,9 +154,9 @@ void Server::readFromClient(pollfd p) {
 	} else {
 		c->setReadData(buffer);
 
-		if (c->getReadData().find("\n") != std::string::npos) {
+		if (c->getReadData().find("\r\n") != std::string::npos) {
 			std::cout << "Client " << p.fd << " sent: ";
-			std::cout << c->getReadData();
+			std::cout << RED << c->getReadData() << RESET;
 
 			std::string response = executeClientMessage(p, c->getReadData());
 
@@ -233,44 +233,31 @@ pollfd &Server::getAvailablePollFd() {
 
 std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	std::string registration[] = { "PASS", "USER", "NICK" };
-	std::string lookup[]	   = { "" };
 
 	Client *c	= &clients[p.fd];
 	Tokens	tks = splitString(msg);
 
+	std::cout << YELLOW << msg << RESET;
+	std::cout << BLUE << tks[0] << RESET << std::endl;
+	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
+
+	// TODO: Refactor
 	if (c->getRegistration() != (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
+		std::string response;
+
 		if (tks[0] == "PASS")
-			return pass(p, tks);
+			response = pass(p, tks);
 		else if (tks[0] == "USER")
-			return user(p, tks);
+			response = user(p, tks);
 		else if (tks[0] == "NICK")
-			return nick(p, tks);
-	}
+			response = nick(p, tks);
 
-	if (c->getWelcome() == false) {
-		c->setWelcome();
-		return welcome(p);
-	}
-
-	std::string command;
-	int			cmd = -1;
-
-	if (tks[0][0] == ':') {
-		command = tks[1];
-	} else {
-		command = tks[0];
-	}
-
-	for (int i = 0; i < 1; i++) {
-		if (lookup[i] == command) {
-			cmd = i;
-			break;
+		if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
+			c->setWelcome();
+			response = welcome(p);
 		}
+		return response;
 	}
 
-	switch (cmd) {
-		case -1:
-		default:
-			return "KICK CLIENT";  // TODO: Remove this later
-	}
+	return "KICK CLIENT";
 }

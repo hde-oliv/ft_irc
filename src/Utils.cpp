@@ -1,7 +1,5 @@
 #include "Utils.hpp"
 
-#include <ctime>
-
 std::vector<std::string> splitString(std::string& source) {
 	std::vector<std::string> tokens;
 	std::string				 singleToken;
@@ -10,6 +8,9 @@ std::vector<std::string> splitString(std::string& source) {
 	if (source[0] == ':') {	 // Prefix
 		std::istringstream sourceStream(source);
 		std::getline(sourceStream, singleToken, ' ');
+
+		removeNewlines(singleToken);
+
 		tokens.push_back(singleToken);
 		source = source.substr(1);
 	}
@@ -23,9 +24,19 @@ std::vector<std::string> splitString(std::string& source) {
 		std::istringstream beforeColonSteam(beforeColon);
 
 		while (std::getline(beforeColonSteam, singleToken, ' ')) {
+			removeNewlines(singleToken);
 			tokens.push_back(singleToken);
 		}
+
+		removeNewlines(afterColon);
 		tokens.push_back(afterColon);
+	} else {
+		std::istringstream sourceStream(source);
+
+		while (std::getline(sourceStream, singleToken, ' ')) {
+			removeNewlines(singleToken);
+			tokens.push_back(singleToken);
+		}
 	}
 
 	return tokens;
@@ -51,4 +62,9 @@ std::string getDatetime() {
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
 
 	return std::string(buffer);
+}
+
+void removeNewlines(std::string& str) {
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 }

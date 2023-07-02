@@ -3,6 +3,8 @@
 
 #include <unistd.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -28,4 +30,5 @@
 void					 panic(std::string caller, std::string msg, int mode);
 std::vector<std::string> splitString(std::string& source);
 std::string				 getDatetime(void);
+void					 removeNewlines(std::string& str);
 #endif

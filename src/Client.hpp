@@ -44,9 +44,9 @@ class Client {
 
 	private:
 	int			fd;
-	int			registration : 4;  // PASS(2) - USER(4) - NICK(8)
-	bool		welcome;		   // If the welcome message was sent
-	bool		knowPassword;	   // If the client knows the server password
+	int			registration;  // PASS(2) - USER(4) - NICK(8)
+	bool		welcome;	   // If the welcome message was sent
+	bool		knowPassword;  // If the client knows the server password
 	std::string nickname;
 	std::string username;
 	std::string hostname;

@@ -1,13 +1,13 @@
 #include "Client.hpp"
 
-Client::Client() {}
-
-Client::~Client() {
-	fd			 = 0;
-	registration = 0;
-	knowPassword = false;
-	welcome		 = false;
+Client::Client() {
+	this->fd		   = 0;
+	this->registration = 0;
+	this->knowPassword = false;
+	this->welcome	   = false;
 }
+
+Client::~Client() {}
 
 int			Client::getFd() const { return fd; }
 int			Client::getRegistration() const { return registration; }
