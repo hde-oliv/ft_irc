@@ -142,7 +142,7 @@ void Server::readFromClient(pollfd p) {
 	ssize_t bytesRead;
 
 	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+	bytesRead = recv(p.fd, buffer, 1, 0);
 
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
