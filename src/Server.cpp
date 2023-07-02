@@ -65,23 +65,23 @@ void Server::setupSocket() {
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_fd < 0) {
-		panic("Server::socket", "Failed");
+		panic("Server::socket", "Failed", P_EXIT);
 	}
 
 	err = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
 					 sizeof(opt));
 	if (err) {
-		panic("Server::setsockopt", "Failed");
+		panic("Server::setsockopt", "Failed", P_EXIT);
 	}
 
 	err = bind(server_fd, (struct sockaddr *)&(address), sizeof(address));
 	if (err < 0) {
-		panic("Server::bind", "Failed");
+		panic("Server::bind", "Failed", P_EXIT);
 	}
 
 	err = listen(server_fd, SOMAXCONN);
 	if (err < 0) {
-		panic("Server::listen", "Failed");
+		panic("Server::listen", "Failed", P_EXIT);
 	}
 }
 
@@ -117,7 +117,7 @@ pollfd &Server::getAvailablePollFd() {
 
 	if (i == MAX_CLIENTS) {
 		panic("Server::getAvailablePollFd",
-			  "Server could not find an available pollfd.");
+			  "Server could not find an available pollfd.", P_CONTINUE);
 	}
 
 	return pollfds[i];
@@ -160,13 +160,15 @@ void Server::readFromClient(pollfd p) {
 
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
-		panic("Server::recv", "Failed");
+		ejectClient(p.fd, LOSTCONNECTION);
+		panic("Server::recv", "Failed", P_CONTINUE);
+		return;
 	} else if (bytesRead == 0) {
 		ejectClient(p.fd, LOSTCONNECTION);
 	} else {
 		c->setReadData(buffer);
 
-		// TODO: it needs to be \r\n, but can't send \r in WinTerm
+		// TODO: it needs to be \r\n, but I can't send \r in Windows Terminal
 		if (c->getReadData().find("\n") != std::string::npos) {
 			// TODO: parse message and set sendData string
 			std::cout << "Client " << p.fd << " sent: ";
@@ -182,7 +184,7 @@ void Server::sendToClient(pollfd p) {
 
 	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
 	if (r == -1) {
-		panic("Server::send", "Failed");
+		panic("Server::send", "Failed", P_CONTINUE);
 	} else if (r != 0) {
 		c->resetData();
 	}
@@ -196,7 +198,8 @@ void Server::newClientHandling() {
 					(socklen_t *)&addrlen);
 
 	if (fd < 0) {
-		panic("Server::accept", "Failed");
+		panic("Server::accept", "Failed", P_CONTINUE);
+		return;
 	}
 
 	if (poll_index < MAX_CLIENTS) {

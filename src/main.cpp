@@ -18,7 +18,7 @@ void signalHandler(int signal) {
 
 void validateInput(int argc, char *argv[]) {
 	if (argc != 3) {
-		panic("validateInput(main:17)", "Invalid number of arguments");
+		panic("main::validateInput", "Invalid number of arguments", P_EXIT);
 	}
 
 	std::string password(argv[1]);
@@ -27,7 +27,7 @@ void validateInput(int argc, char *argv[]) {
 	int port = std::atoi(argv[2]);
 
 	if (port <= 0) {
-		panic("validateInput(main:39)", "Invalid port");
+		panic("main::validateInput", "Invalid port", P_EXIT);
 	}
 }
 
