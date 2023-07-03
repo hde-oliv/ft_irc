@@ -1,50 +1,17 @@
-#include <sstream>
-
-#include "Client.hpp"
 #include "Server.hpp"
-#include "Utils.hpp"
-
-std::string Server::welcome(pollfd p) {
-	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
-
-	// RPL_WELCOME 001
-	ss << ":localhost 001 " << c->getNickname();
-	ss << " :Welcome to the FT_IRC server " << c->getNickname();
-	ss << "\r\n";
-
-	// RPL_YOURHOST 002
-	ss << ":localhost 002 " << c->getNickname();
-	ss << " :Your host is localhost, running version 0.1";
-	ss << "\r\n";
-
-	// RPL_CREATED 003
-	ss << ":localhost 003 " << c->getNickname();
-	ss << " :This server was created " << creationDatetime;
-	ss << "\r\n";
-
-	// RPL_MYINFO 004
-	ss << ":localhost 004 " << c->getNickname();
-	ss << " localhost 0.1 iowstRb- biklmnopstvrRcCNuMTD";
-	ss << "\r\n";
-
-	ss << motd(p);
-
-	return ss.str();
-}
 
 std::string Server::pass(pollfd p, Tokens &tks) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	// if (tks.size() == 1) {
-	// 	// return ERR_NEEDMOREPARAMS 461
-	// } else if (c->getRegistration() & PASS_FLAG) {
-	// 	// return ERR_ALREADYREGISTRED 462
-	// } else if (tks[1].substr(1) != password) {
-	// 	// return ERR_PASSWDMISMATCH 464
-	// }
-	//
+	if (tks.size() == 1) {
+		return needmoreparams(p, "PASS");  // ERR_NEEDMOREPARAMS 461
+	} else if (c->getRegistration() & PASS_FLAG) {
+		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
+	} else if (tks[1].substr(1) != password) {
+		return passwdmismatch(p);  // ERR_PASSWDMISMATCH 464
+	}
+
 	(void)tks;
 
 	c->setKnowPassword();
@@ -58,11 +25,11 @@ std::string Server::user(pollfd p, Tokens &tks) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	// if (tks.size() < 5) {
-	// 	// return ERR_NEEDMOREPARAMS 461
-	// } else if (c->getRegistration() & USER_FLAG) {
-	// 	// return ERR_ALREADYREGISTERED 462
-	// }
+	if (tks.size() < 5) {
+		return needmoreparams(p, "USER");  // ERR_NEEDMOREPARAMS 461
+	} else if (c->getRegistration() & USER_FLAG) {
+		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
+	}
 
 	c->setUsername(tks[1]);
 	c->setHostname(tks[2]);
@@ -72,6 +39,17 @@ std::string Server::user(pollfd p, Tokens &tks) {
 	c->resetReadData();
 
 	return "";
+}
+
+// TODO: Write these functions later
+bool validNickname(std::string s) {
+	(void)s;
+	return true;
+}
+
+bool nicknameAlreadyExists(std::string s) {
+	(void)s;
+	return false;
 }
 
 std::string Server::nick(pollfd p, Tokens &tks) {
@@ -86,39 +64,18 @@ std::string Server::nick(pollfd p, Tokens &tks) {
 
 	// TODO: Refactor to handle Prefix NICK command
 
-	// if (tks.size() == 1) {
-	// 	// return ERR_NONICKNAMEGIVEN 431
-	// }
-	// TODO: Implement the following functions
-	// else if (!validNickname(tks[1])) {
-	// return ERR_ERRONEUSNICKNAME 432
-	// } else if (nicknameAlreadyExists(tks[1])) {
-	// return ERR_NICKNAMEINUSE 433
-	// }
+	if (tks.size() == 1) {
+		return nonicknamegiven(p);	// ERR_NONICKNAMEGIVEN 431
+	} else if (!validNickname(tks[1])) {
+		return erroneusnickname(p, tks[1]);	 // ERR_ERRONEUSNICKNAME 432
+	} else if (nicknameAlreadyExists(tks[1])) {
+		return nicknameinuse(p, tks[1]);  // ERR_NICKNAMEINUSE 433
+	}
 	c->setNickname(tks[1]);
 	c->setRegistration(NICK_FLAG);
 	c->resetReadData();
 
 	return "";
-}
-
-std::string Server::motd(pollfd p) {
-	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
-
-	ss << ":localhost 375 " << c->getNickname();
-	ss << " :- localhost Message of the day -";
-	ss << "\r\n";
-
-	ss << ":localhost 372 " << c->getNickname();
-	ss << " :- Welcome to the FT_IRC!";
-	ss << "\r\n";
-
-	ss << ":localhost 376 " << c->getNickname();
-	ss << " :End of MOTD command.";
-	ss << "\r\n";
-
-	return ss.str();
 }
 
 std::string Server::quit(pollfd p, Tokens &tks) {

@@ -8,11 +8,13 @@
 
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "Channel.hpp"
 #include "Client.hpp"
+#include "Utils.hpp"
 
 #define MAX_CLIENTS 3
 // Reasons for ajecting a client
@@ -56,8 +58,15 @@ class Server {
 	std::string user(pollfd p, Tokens &tks);
 	std::string nick(pollfd p, Tokens &tks);
 	std::string quit(pollfd p, Tokens &tks);
+
 	std::string motd(pollfd p);
 	std::string welcome(pollfd p);
+	std::string needmoreparams(pollfd p, std::string command);
+	std::string alreadyregistered(pollfd p);
+	std::string passwdmismatch(pollfd p);
+	std::string nonicknamegiven(pollfd p);
+	std::string erroneusnickname(pollfd p, std::string nickname);
+	std::string nicknameinuse(pollfd p, std::string nickname);
 };
 
 #endif
