@@ -57,10 +57,7 @@ std::string Server::nick(pollfd p, Tokens &tks) {
 	Client			*c = &clients[p.fd];
 
 	// ERR_NONICKNAMEGIVEN             ERR_ERRONEUSNICKNAME
-	// ERR_NICKNAMEINUSE               ERR_NICKCOLLISION
-
-	// NOTE: Verify if the NICKCOLLISION is necessary since
-	// the ft_irc does not handle server-server communication
+	// ERR_NICKNAMEINUSE
 
 	// TODO: Refactor to handle Prefix NICK command
 
