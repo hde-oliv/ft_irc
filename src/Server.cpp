@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -59,45 +60,81 @@ void Server::setupSocket() {
 
 void Server::startServer() {
 	setupSocket();
-	std::memset(pollfds, 0, sizeof(pollfd) * MAX_CLIENTS);
+	int		r;
+	pollfd *cVectorPollfds;
+	nfds_t	pollSize;
 
-	pollfds[0].fd	  = server_fd;
-	pollfds[0].events = POLLIN;
-	poll_index		  = 0;
-
+	struct pollfd server;
+	server.fd	   = server_fd;
+	server.events  = POLLIN;
+	server.revents = 0;
+	pollFds.push_back(server);
 	while (g_online) {
-		int r = poll(pollfds, poll_index + 1, -1);
-
+		cVectorPollfds = pollFds.data();
+		pollSize	   = static_cast<nfds_t>(pollFds.size());
+		r			   = poll(cVectorPollfds, pollSize, -1);
 		if (r >= 0) {
 			serverEventHandling();
 			clientEventHandling();
+			// ejections should happen after both!
 		}
 	}
-
 	close(server_fd);
 }
 
 void Server::serverEventHandling() {
-	if (pollfds[0].revents & POLLIN) {
+	if (pollFds[0].revents & POLLIN) {
 		newClientHandling();
 	}
 }
 
 void Server::clientEventHandling() {
-	for (int i = 1; i <= MAX_CLIENTS; i++) {
-		if (pollfds[i].revents & POLLIN) {
-			readFromClient(pollfds[i]);
-		} else if (pollfds[i].revents & POLLOUT) {
-			sendToClient(pollfds[i]);
-		} else if (pollfds[i].revents & POLLERR) {
-			std::cout << "POLLERR caught" << std::endl;
-			ejectClient(pollfds[i].fd, -1);
-		} else if (pollfds[i].revents & POLLHUP) {
-			std::cout << "POLLHUP caught" << std::endl;
-		} else if (pollfds[i].revents & POLLNVAL) {
-			std::cout << "POLLNVAL caught" << std::endl;
+	std::vector<pollfd>::iterator it = pollFds.begin();
+	if (pollFds.size() > 1) {
+		while (++it < pollFds.end()) {
+			if ((*it).revents & POLLIN) {
+				readFromClient((*it));
+			} else if ((*it).revents & POLLOUT) {
+				sendToClient((*it));
+			} else if ((*it).revents & POLLERR) {
+				std::cout << "POLLERR caught" << std::endl;
+				ejectClient((*it).fd, -1);
+			} else if ((*it).revents & POLLHUP) {
+				std::cout << "POLLHUP caught" << std::endl;
+			} else if ((*it).revents & POLLNVAL) {
+				std::cout << "POLLNVAL caught" << std::endl;
+			}
 		}
 	}
+	// for (std::vector<pollfd>::iterator it = pollFds.begin() + 1;
+	// 	 it < pollFds.end(); it++) {
+	// 	if ((*it).revents & POLLIN) {
+	// 		readFromClient((*it));
+	// 	} else if ((*it).revents & POLLOUT) {
+	// 		sendToClient((*it));
+	// 	} else if ((*it).revents & POLLERR) {
+	// 		std::cout << "POLLERR caught" << std::endl;
+	// 		ejectClient((*it).fd, -1);
+	// 	} else if ((*it).revents & POLLHUP) {
+	// 		std::cout << "POLLHUP caught" << std::endl;
+	// 	} else if ((*it).revents & POLLNVAL) {
+	// 		std::cout << "POLLNVAL caught" << std::endl;
+	// 	}
+	// }
+	// for (std::vector<pollfd>::size_type i = 1; i <= pollFds.size(); i++) {
+	// 	if (pollFds[i].revents & POLLIN) {
+	// 		readFromClient(pollFds[i]);
+	// 	} else if (pollFds[i].revents & POLLOUT) {
+	// 		sendToClient(pollFds[i]);
+	// 	} else if (pollFds[i].revents & POLLERR) {
+	// 		std::cout << "POLLERR caught" << std::endl;
+	// 		ejectClient(pollFds[i].fd, -1);
+	// 	} else if (pollFds[i].revents & POLLHUP) {
+	// 		std::cout << "POLLHUP caught" << std::endl;
+	// 	} else if (pollFds[i].revents & POLLNVAL) {
+	// 		std::cout << "POLLNVAL caught" << std::endl;
+	// 	}
+	// }
 }
 
 void Server::newClientHandling() {
@@ -112,17 +149,18 @@ void Server::newClientHandling() {
 		return;
 	}
 
-	if (poll_index < MAX_CLIENTS) {
-		Client	newClient;
-		pollfd &clientPollFd = getAvailablePollFd();
+	if (pollFds.size() + 1 < MAX_CLIENTS) {
+		Client newClient;
+		pollfd newPollFd;
 
 		newClient.setHostname(inet_ntoa(client_address.sin_addr));
 		newClient.setFd(fd);
+		clients[fd] = newClient;
 
-		clients[fd]			= newClient;
-		clientPollFd.fd		= fd;
-		clientPollFd.events = POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
-		poll_index++;
+		newPollFd.fd	  = fd;
+		newPollFd.events  = POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
+		newPollFd.revents = 0;
+		pollFds.push_back(newPollFd);
 		std::cout << "New connection stablished with "
 				  << newClient.getHostname() << " on fd " << fd << std::endl;
 	} else {
@@ -183,7 +221,7 @@ void Server::readFromClient(pollfd p) {
 	recvLoop(p);
 
 	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, 1, 0);
+	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
 
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
@@ -235,15 +273,16 @@ void Server::sendToClient(pollfd p) {
 }
 
 void Server::ejectClient(int clientFd, int reason) {
-	close(clientFd);
-
-	for (int i = 1; i < MAX_CLIENTS; i++) {
-		if (pollfds[i].fd == clientFd)
-			std::memset(&pollfds[i], 0, sizeof(pollfd));
+	for (std::vector<pollfd>::iterator it = pollFds.begin(); it < pollFds.end();
+		 it++) {
+		if ((*it).fd == clientFd) {
+			close(clientFd);
+			std::memset(&(*it), 0, sizeof(pollfd));
+			pollFds.erase(it);
+			break;
+		}
 	}
-
 	clients.erase(clientFd);
-	poll_index--;
 
 	switch (reason) {
 		case LOSTCONNECTION:
@@ -261,24 +300,6 @@ void Server::ejectClient(int clientFd, int reason) {
 			std::cout << "Client successfully ejected. (fd : " << clientFd
 					  << ")" << std::endl;
 	}
-}
-
-pollfd &Server::getAvailablePollFd() {
-	int i = 1;
-
-	while (i < MAX_CLIENTS) {
-		if (pollfds[i].fd == 0) {
-			break;
-		}
-		i++;
-	}
-
-	if (i == MAX_CLIENTS) {
-		panic("Server::getAvailablePollFd",
-			  "Server could not find an available pollfd.", P_CONTINUE);
-	}
-
-	return pollfds[i];
 }
 
 // Command section
