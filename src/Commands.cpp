@@ -14,7 +14,7 @@ std::string Server::pass(pollfd p, Tokens &tks) {
 
 	(void)tks;
 
-	c->setKnowPassword();
+	c->setKnowPassword(true);
 	c->setRegistration(PASS_FLAG);
 	c->resetReadData();
 
@@ -45,11 +45,7 @@ std::string Server::nick(pollfd p, Tokens &tks) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	// ERR_NONICKNAMEGIVEN             ERR_ERRONEUSNICKNAME
-	// ERR_NICKNAMEINUSE
-
 	// TODO: Refactor to handle Prefix NICK command
-
 	if (tks.size() == 1) {
 		return nonicknamegiven(p);	// ERR_NONICKNAMEGIVEN 431
 	} else if (!validNickname(tks[1])) {
@@ -62,6 +58,24 @@ std::string Server::nick(pollfd p, Tokens &tks) {
 	c->resetReadData();
 
 	return "";
+}
+
+std::string Server::oper(pollfd p, Tokens &tks) {
+	Tokens::iterator it;
+	Client			*c = &clients[p.fd];
+
+	if (tks.size() < 3) {
+		return needmoreparams(p, tks[1]);
+	} else if (tks[2] != OPER_PASS) {
+		return passwdmismatch(p);
+	} else if (tks[1] != OPER_USER) {
+		return nooperhost(p);
+	}
+
+	c->setOp(true);
+
+	// TODO: Send MODE +o
+	return youreoper(p);
 }
 
 std::string Server::quit(pollfd p, Tokens &tks) {
@@ -82,7 +96,7 @@ bool Server::validNickname(std::string nickname) {
 		return false;
 	}
 
-	std::string disallowedChars = " ,:\r\n\0\a";
+	std::string disallowedChars = " ,*?!@$.#&:\r\n\0\a";
 	for (size_t i = 0; i < nickname.length(); ++i) {
 		if (disallowedChars.find(nickname[i]) != std::string::npos) {
 			return false;

@@ -57,6 +57,7 @@ class Server {
 	std::string user(pollfd p, Tokens &tks);
 	std::string nick(pollfd p, Tokens &tks);
 	std::string quit(pollfd p, Tokens &tks);
+	std::string oper(pollfd p, Tokens &tks);
 
 	std::string motd(pollfd p);
 	std::string welcome(pollfd p);
@@ -66,6 +67,8 @@ class Server {
 	std::string nonicknamegiven(pollfd p);
 	std::string erroneusnickname(pollfd p, std::string nickname);
 	std::string nicknameinuse(pollfd p, std::string nickname);
+	std::string youreoper(pollfd p);
+	std::string nooperhost(pollfd p);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

@@ -21,8 +21,9 @@ std::string Client::getSendData() const { return sendData; }
 std::string Client::getServername() const { return servername; }
 std::string Client::getRealname() const { return realname; }
 
-void Client::setWelcome() { welcome = true; }
-void Client::setKnowPassword() { knowPassword = true; }
+void Client::setOp(bool value) { op = value; }
+void Client::setWelcome(bool value) { welcome = value; }
+void Client::setKnowPassword(bool value) { knowPassword = value; }
 void Client::setRegistration(int flag) { registration |= flag; }
 void Client::setFd(int fd) { this->fd = fd; }
 void Client::setUsername(std::string name) { username = name; }

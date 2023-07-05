@@ -10,6 +10,9 @@
 #define USER_FLAG 4
 #define NICK_FLAG 8
 
+#define OPER_USER "foo"
+#define OPER_PASS "bar"
+
 class Client {
 	public:
 	Client(void);
@@ -24,8 +27,9 @@ class Client {
 	void setRealname(std::string name);
 	void setNickname(std::string name);
 	void setRegistration(int flag);
-	void setKnowPassword();
-	void setWelcome();
+	void setOp(bool value);
+	void setKnowPassword(bool value);
+	void setWelcome(bool value);
 	void resetAllData();
 	void resetReadData();
 	void resetSendData(int len);
@@ -34,6 +38,7 @@ class Client {
 	int			getRegistration() const;
 	bool		getWelcome() const;
 	bool		getKnowPassword() const;
+	bool		getOp() const;
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getHostname() const;
@@ -47,6 +52,7 @@ class Client {
 	int			registration;  // PASS(2) - USER(4) - NICK(8)
 	bool		welcome;	   // If the welcome message was sent
 	bool		knowPassword;  // If the client knows the server password
+	bool		op;			   // If the client is a Server Operator
 	std::string nickname;
 	std::string username;
 	std::string hostname;

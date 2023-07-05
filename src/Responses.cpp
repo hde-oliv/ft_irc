@@ -65,7 +65,6 @@ std::string Server::nicknameinuse(pollfd p, std::string nickname) {
 
 	return ss.str();
 }
-
 std::string Server::welcome(pollfd p) {
 	std::stringstream ss;
 	Client			 *c = &clients[p.fd];
@@ -109,6 +108,28 @@ std::string Server::motd(pollfd p) {
 
 	ss << ":localhost 376 " << c->getNickname();
 	ss << " :End of MOTD command.";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::nooperhost(pollfd p) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 491 " << c->getNickname();
+	ss << " :No O-lines for your host";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::youreoper(pollfd p) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 381 " << c->getNickname();
+	ss << " :You are now an IRC operator";
 	ss << "\r\n";
 
 	return ss.str();

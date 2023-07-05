@@ -304,8 +304,9 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		else if (tks[0] == "NICK")
 			response = nick(p, tks);
 
-		if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
-			c->setWelcome();
+		if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
+			!c->getWelcome()) {
+			c->setWelcome(true);
 			response = welcome(p);
 		}
 		return response;
