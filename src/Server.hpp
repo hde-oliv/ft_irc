@@ -16,11 +16,10 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 
-#define MAX_CLIENTS 3
-// Reasons for ajecting a client
 #define LOSTCONNECTION 0
 #define QUITED 1
 #define KICKED 2
+#define MAX_CLIENTS 3
 
 class Server {
 	typedef std::vector<std::string> Tokens;
@@ -67,6 +66,9 @@ class Server {
 	std::string nonicknamegiven(pollfd p);
 	std::string erroneusnickname(pollfd p, std::string nickname);
 	std::string nicknameinuse(pollfd p, std::string nickname);
+
+	bool validNickname(std::string nickname);
+	bool nicknameAlreadyExists(std::string nickname);
 };
 
 #endif

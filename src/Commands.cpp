@@ -41,17 +41,6 @@ std::string Server::user(pollfd p, Tokens &tks) {
 	return "";
 }
 
-// TODO: Write these functions later
-bool validNickname(std::string s) {
-	(void)s;
-	return true;
-}
-
-bool nicknameAlreadyExists(std::string s) {
-	(void)s;
-	return false;
-}
-
 std::string Server::nick(pollfd p, Tokens &tks) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
@@ -85,4 +74,32 @@ std::string Server::quit(pollfd p, Tokens &tks) {
 	}
 
 	return "Q";
+}
+
+// Utils
+bool Server::validNickname(std::string nickname) {
+	if (nickname.empty() || isdigit(nickname[0])) {
+		return false;
+	}
+
+	std::string disallowedChars = " ,:\r\n\0\a";
+	for (size_t i = 0; i < nickname.length(); ++i) {
+		if (disallowedChars.find(nickname[i]) != std::string::npos) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Server::nicknameAlreadyExists(std::string nickname) {
+	std::map<int, Client>::iterator it;
+
+	std::string uppercaseNickname = toUppercase(nickname);
+
+	for (; it != clients.end(); it++) {
+		if (toUppercase(it->second.getNickname()) == uppercaseNickname)
+			return true;
+	}
+	return false;
 }

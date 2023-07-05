@@ -68,3 +68,22 @@ void removeNewlines(std::string& str) {
 	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
 	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 }
+
+void replaceString(std::string& subject, const std::string& search,
+				   const std::string& replace) {
+	size_t pos = 0;
+	while ((pos = subject.find(search, pos)) != std::string::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+}
+
+std::string toUppercase(std::string s) {
+	// NOTE: Check this later
+	transform(s.begin(), s.end(), s.begin(), ::toupper);
+	replaceString(s, "{", "[");
+	replaceString(s, "}", "]");
+	replaceString(s, "|", "\\");
+
+	return s;
+}
