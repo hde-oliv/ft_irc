@@ -176,6 +176,9 @@ void Server::readFromClient(pollfd p) {
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
 
+	std::memset(buffer, 0, BUFFER_SIZE);
+	bytesRead = recv(p.fd, buffer, 1, 0);
+
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
 		ejectClient(p.fd, LOSTCONNECTION);
