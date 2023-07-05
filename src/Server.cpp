@@ -84,7 +84,7 @@ void Server::serverEventHandling() {
 }
 
 void Server::clientEventHandling() {
-	for (int i = 1; i <= poll_index; i++) {
+	for (int i = 1; i <= MAX_CLIENTS; i++) {
 		if (pollfds[i].revents & POLLIN) {
 			readFromClient(pollfds[i]);
 		} else if (pollfds[i].revents & POLLOUT) {
@@ -92,14 +92,11 @@ void Server::clientEventHandling() {
 		} else if (pollfds[i].revents & POLLERR) {
 			std::cout << "POLLERR caught" << std::endl;
 			ejectClient(pollfds[i].fd, -1);
+		} else if (pollfds[i].revents & POLLHUP) {
+			std::cout << "POLLHUP caught" << std::endl;
+		} else if (pollfds[i].revents & POLLNVAL) {
+			std::cout << "POLLNVAL caught" << std::endl;
 		}
-
-		// NOTE: I do not know if they are necessary
-		// else if (pollfds[i].revents & POLLHUP) {
-		// 	std::cout << "POLLHUP caught" << std::endl;
-		// } else if (pollfds[i].revents & POLLNVAL) {
-		// 	std::cout << "POLLNVAL caught" << std::endl;
-		// }
 	}
 }
 
@@ -124,7 +121,7 @@ void Server::newClientHandling() {
 
 		clients[fd]			= newClient;
 		clientPollFd.fd		= fd;
-		clientPollFd.events = POLLIN | POLLOUT | POLLERR;
+		clientPollFd.events = POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
 		poll_index++;
 		std::cout << "New connection stablished with "
 				  << newClient.getHostname() << " on fd " << fd << std::endl;
@@ -138,12 +135,41 @@ void Server::newClientHandling() {
 void Server::readFromClient(pollfd p) {
 	Client *c = &clients[p.fd];
 
-	char	buffer[BUFFER_SIZE];
-	ssize_t bytesRead;
+	char		buffer[BUFFER_SIZE];
+	ssize_t		bytesRead;
+	bool		keepReading = true;
+	std::string strBuff		= "";
+	std::string clientBuff	= "";  // this will be moved into client struct
+	std::vector<std::string> cmds;
+	size_t					 pos;
 
-	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, 1, 0);
-
+	while (keepReading) {
+		std::memset(buffer, 0, BUFFER_SIZE);
+		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+		if (bytesRead > 0) {
+			strBuff.append(buffer);
+			if (bytesRead < BUFFER_SIZE) {
+				keepReading = false;
+			}
+		} else {
+			keepReading = false;
+		}
+	}
+	clientBuff.append(strBuff);
+	strBuff.erase();
+	keepReading = true;
+	while (keepReading) {
+		// (pos = clientBuff.find("\n\r")) != std::string::npos
+		if (clientBuff.length() == 0) break;
+		pos = clientBuff.find("\r\n");
+		if (pos > 0) {
+			cmds.push_back(clientBuff.substr(0, pos));
+			clientBuff.erase(0, pos + 2);
+		} else {
+			cmds.push_back(clientBuff);
+			clientBuff.erase();
+		}
+	}
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
 		ejectClient(p.fd, LOSTCONNECTION);
@@ -151,6 +177,8 @@ void Server::readFromClient(pollfd p) {
 		return;
 	} else if (bytesRead == 0) {
 		ejectClient(p.fd, LOSTCONNECTION);
+		std::cout << "This is where there would be a disconnect event"
+				  << std::endl;
 	} else {
 		c->setReadData(buffer);
 
@@ -174,6 +202,10 @@ void Server::sendToClient(pollfd p) {
 	Client *c = &clients[p.fd];
 	int		r;
 
+	// send might send the message partially, needs handling other than OK and
+	// fail (controll how manyu bytes were actually sent).
+	// it would be best the erase characters thar were correctly sent instead
+	// of erasing the entire string
 	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
 	if (r == -1) {
 		panic("Server::send", "Failed", P_CONTINUE);
