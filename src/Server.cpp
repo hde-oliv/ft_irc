@@ -106,35 +106,6 @@ void Server::clientEventHandling() {
 			}
 		}
 	}
-	// for (std::vector<pollfd>::iterator it = pollFds.begin() + 1;
-	// 	 it < pollFds.end(); it++) {
-	// 	if ((*it).revents & POLLIN) {
-	// 		readFromClient((*it));
-	// 	} else if ((*it).revents & POLLOUT) {
-	// 		sendToClient((*it));
-	// 	} else if ((*it).revents & POLLERR) {
-	// 		std::cout << "POLLERR caught" << std::endl;
-	// 		ejectClient((*it).fd, -1);
-	// 	} else if ((*it).revents & POLLHUP) {
-	// 		std::cout << "POLLHUP caught" << std::endl;
-	// 	} else if ((*it).revents & POLLNVAL) {
-	// 		std::cout << "POLLNVAL caught" << std::endl;
-	// 	}
-	// }
-	// for (std::vector<pollfd>::size_type i = 1; i <= pollFds.size(); i++) {
-	// 	if (pollFds[i].revents & POLLIN) {
-	// 		readFromClient(pollFds[i]);
-	// 	} else if (pollFds[i].revents & POLLOUT) {
-	// 		sendToClient(pollFds[i]);
-	// 	} else if (pollFds[i].revents & POLLERR) {
-	// 		std::cout << "POLLERR caught" << std::endl;
-	// 		ejectClient(pollFds[i].fd, -1);
-	// 	} else if (pollFds[i].revents & POLLHUP) {
-	// 		std::cout << "POLLHUP caught" << std::endl;
-	// 	} else if (pollFds[i].revents & POLLNVAL) {
-	// 		std::cout << "POLLNVAL caught" << std::endl;
-	// 	}
-	// }
 }
 
 void Server::newClientHandling() {
@@ -203,7 +174,7 @@ void recvLoop(pollfd p) {
 		if (clientBuff.length() == 0) break;
 		pos = clientBuff.find("\r\n");
 		if (pos > 0) {
-			cmds.push_back(clientBuff.substr(0, pos));
+			cmds.push_back(clientBuff.substr(0, pos + 2));
 			clientBuff.erase(0, pos + 2);
 		} else {
 			cmds.push_back(clientBuff);
@@ -221,7 +192,7 @@ void Server::readFromClient(pollfd p) {
 	recvLoop(p);
 
 	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+	bytesRead = recv(p.fd, buffer, 1, 0);
 
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
