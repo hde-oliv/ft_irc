@@ -45,5 +45,5 @@ void Client::resetAllData() {
 	readData.clear();
 }
 
-void Client::resetSendData() { sendData.clear(); }
+void Client::resetSendData(int len) { sendData = sendData.substr(len); }
 void Client::resetReadData() { readData.clear(); }

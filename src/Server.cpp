@@ -215,11 +215,16 @@ void Server::sendToClient(pollfd p) {
 	// fail (controll how manyu bytes were actually sent).
 	// it would be best the erase characters thar were correctly sent instead
 	// of erasing the entire string
-	r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
-	if (r == -1) {
-		panic("Server::send", "Failed", P_CONTINUE);
-	} else if (r > 0) {
-		c->resetAllData();
+	//
+	// NOTE: Check if the changes here and on resetSendData fix that ^
+
+	if (c->getSendData().size()) {
+		r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
+		if (r == -1) {
+			panic("Server::send", "Failed", P_CONTINUE);
+		} else if (r > 0) {
+			c->resetSendData(r);
+		}
 	}
 }
 

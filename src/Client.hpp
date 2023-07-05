@@ -28,7 +28,7 @@ class Client {
 	void setWelcome();
 	void resetAllData();
 	void resetReadData();
-	void resetSendData();
+	void resetSendData(int len);
 
 	int			getFd() const;
 	int			getRegistration() const;
