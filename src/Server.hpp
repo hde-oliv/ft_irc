@@ -53,11 +53,11 @@ class Server {
 
 	std::string executeClientMessage(pollfd p, std::string msg);
 	void		setupCommandMap();
-	std::string pass(pollfd p, Tokens &tks);
-	std::string user(pollfd p, Tokens &tks);
-	std::string nick(pollfd p, Tokens &tks);
-	std::string quit(pollfd p, Tokens &tks);
-	std::string oper(pollfd p, Tokens &tks);
+	std::string pass(pollfd p, Command &t);
+	std::string user(pollfd p, Command &t);
+	std::string nick(pollfd p, Command &t);
+	std::string quit(pollfd p, Command &t);
+	std::string oper(pollfd p, Command &t);
 
 	std::string motd(pollfd p);
 	std::string welcome(pollfd p);

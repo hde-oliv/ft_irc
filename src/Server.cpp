@@ -286,23 +286,23 @@ pollfd &Server::getAvailablePollFd() {
 std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	std::string registration[] = { "PASS", "USER", "NICK" };
 
-	Client *c	= &clients[p.fd];
-	Tokens	tks = splitString(msg);
+	Client *c  = &clients[p.fd];
+	Command cm = stringToCommand(msg);
 
 	std::cout << YELLOW << msg << RESET;
-	std::cout << BLUE << tks[0] << RESET << std::endl;
+	std::cout << BLUE << cm.cmd << RESET << std::endl;
 	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
 	// TODO: Refactor
 	if (c->getRegistration() != (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
 		std::string response;
 
-		if (tks[0] == "PASS")
-			response = pass(p, tks);
-		else if (tks[0] == "USER")
-			response = user(p, tks);
-		else if (tks[0] == "NICK")
-			response = nick(p, tks);
+		if (cm.cmd == "PASS")
+			response = pass(p, cm);
+		else if (cm.cmd == "USER")
+			response = user(p, cm);
+		else if (cm.cmd == "NICK")
+			response = nick(p, cm);
 
 		if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
 			!c->getWelcome()) {

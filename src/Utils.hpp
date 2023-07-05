@@ -27,11 +27,17 @@
 #define CYAN "\033[0;36m"
 #define WHITE "\033[0;37m"
 
+typedef struct s_command {
+	std::string				 prefix;
+	std::string				 cmd;
+	std::vector<std::string> args;
+} Command;
+
 void		panic(std::string caller, std::string msg, int mode);
 std::string getDatetime(void);
 void		replaceString(std::string &subject, std::string &search,
 						  std::string &replace);
-std::vector<std::string> splitString(std::string &source);
-std::string				 toUppercase(std::string s);
-void					 removeNewlines(std::string &str);
+Command		stringToCommand(std::string source);
+std::string toUppercase(std::string s);
+void		strip(std::string &str);
 #endif

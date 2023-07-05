@@ -1,18 +1,16 @@
 #include "Server.hpp"
 
-std::string Server::pass(pollfd p, Tokens &tks) {
+std::string Server::pass(pollfd p, Command &t) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	if (tks.size() == 1) {
+	if (t.args.size() == 0) {
 		return needmoreparams(p, "PASS");  // ERR_NEEDMOREPARAMS 461
 	} else if (c->getRegistration() & PASS_FLAG) {
 		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
-	} else if (tks[1].substr(1) != password) {
+	} else if (t.args[0].substr(1) != password) {
 		return passwdmismatch(p);  // ERR_PASSWDMISMATCH 464
 	}
-
-	(void)tks;
 
 	c->setKnowPassword(true);
 	c->setRegistration(PASS_FLAG);
@@ -21,54 +19,53 @@ std::string Server::pass(pollfd p, Tokens &tks) {
 	return "";
 }
 
-std::string Server::user(pollfd p, Tokens &tks) {
+std::string Server::user(pollfd p, Command &t) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	if (tks.size() < 5) {
+	if (t.args.size() < 4) {
 		return needmoreparams(p, "USER");  // ERR_NEEDMOREPARAMS 461
 	} else if (c->getRegistration() & USER_FLAG) {
 		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
 	}
 
-	c->setUsername(tks[1]);
-	c->setHostname(tks[2]);
-	c->setServername(tks[3]);
-	c->setRealname(tks[4]);
+	c->setUsername(t.args[0]);
+	c->setHostname(t.args[1]);
+	c->setServername(t.args[2]);
+	c->setRealname(t.args[3]);
 	c->setRegistration(USER_FLAG);
 	c->resetReadData();
 
 	return "";
 }
 
-std::string Server::nick(pollfd p, Tokens &tks) {
+std::string Server::nick(pollfd p, Command &t) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	// TODO: Refactor to handle Prefix NICK command
-	if (tks.size() == 1) {
+	if (t.args.size() == 0) {
 		return nonicknamegiven(p);	// ERR_NONICKNAMEGIVEN 431
-	} else if (!validNickname(tks[1])) {
-		return erroneusnickname(p, tks[1]);	 // ERR_ERRONEUSNICKNAME 432
-	} else if (nicknameAlreadyExists(tks[1])) {
-		return nicknameinuse(p, tks[1]);  // ERR_NICKNAMEINUSE 433
+	} else if (!validNickname(t.args[0])) {
+		return erroneusnickname(p, t.args[0]);	// ERR_ERRONEUSNICKNAME 432
+	} else if (nicknameAlreadyExists(t.args[0])) {
+		return nicknameinuse(p, t.args[0]);	 // ERR_NICKNAMEINUSE 433
 	}
-	c->setNickname(tks[1]);
+	c->setNickname(t.args[0]);
 	c->setRegistration(NICK_FLAG);
 	c->resetReadData();
 
 	return "";
 }
 
-std::string Server::oper(pollfd p, Tokens &tks) {
+std::string Server::oper(pollfd p, Command &t) {
 	Tokens::iterator it;
 	Client			*c = &clients[p.fd];
 
-	if (tks.size() < 3) {
-		return needmoreparams(p, tks[1]);
-	} else if (tks[2] != OPER_PASS) {
+	if (t.args.size() < 2) {
+		return needmoreparams(p, t.cmd);
+	} else if (t.args[1] != OPER_PASS) {
 		return passwdmismatch(p);
-	} else if (tks[1] != OPER_USER) {
+	} else if (t.args[0] != OPER_USER) {
 		return nooperhost(p);
 	}
 
@@ -76,18 +73,6 @@ std::string Server::oper(pollfd p, Tokens &tks) {
 
 	// TODO: Send MODE +o
 	return youreoper(p);
-}
-
-std::string Server::quit(pollfd p, Tokens &tks) {
-	Tokens::iterator it;
-	(void)p;
-
-	std::cout << "QUIT COMMAND" << std::endl;
-	for (it = tks.begin(); it != tks.end(); it++) {
-		std::cout << *it << std::endl;
-	}
-
-	return "Q";
 }
 
 // Utils

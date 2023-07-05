@@ -1,19 +1,21 @@
 #include "Utils.hpp"
 
-std::vector<std::string> splitString(std::string& source) {
-	std::vector<std::string> tokens;
-	std::string				 singleToken;
+Command stringToCommand(std::string source) {
+	Command c;
 
-	// TODO: Prefix are neccesary?
-	if (source[0] == ':') {	 // Prefix
+	std::string token;
+
+	if (source[0] == ':') {
 		std::istringstream sourceStream(source);
-		std::getline(sourceStream, singleToken, ' ');
-
-		removeNewlines(singleToken);
-
-		tokens.push_back(singleToken);
-		source = source.substr(1);
+		std::getline(sourceStream, c.prefix, ' ');
+		strip(c.prefix);
+		source = source.substr(source.find(c.prefix) + c.prefix.size());
 	}
+
+	strip(source);
+	std::istringstream sourceStream(source);
+	std::getline(sourceStream, c.cmd, ' ');
+	source = source.substr(source.find(c.cmd) + c.cmd.size());
 
 	// TODO: Find a better solution later
 	size_t colon = source.find(":");
@@ -23,23 +25,23 @@ std::vector<std::string> splitString(std::string& source) {
 
 		std::istringstream beforeColonSteam(beforeColon);
 
-		while (std::getline(beforeColonSteam, singleToken, ' ')) {
-			removeNewlines(singleToken);
-			tokens.push_back(singleToken);
+		while (std::getline(beforeColonSteam, token, ' ')) {
+			strip(token);
+			if (token.size() != 0) c.args.push_back(token);
 		}
 
-		removeNewlines(afterColon);
-		tokens.push_back(afterColon);
+		strip(afterColon);
+		c.args.push_back(afterColon);
 	} else {
 		std::istringstream sourceStream(source);
 
-		while (std::getline(sourceStream, singleToken, ' ')) {
-			removeNewlines(singleToken);
-			tokens.push_back(singleToken);
+		while (std::getline(sourceStream, token, ' ')) {
+			strip(token);
+			if (token.size() != 0) c.args.push_back(token);
 		}
 	}
 
-	return tokens;
+	return c;
 }
 void panic(std::string caller, std::string msg, int mode) {
 	std::cerr << RED << "Exception on " << caller << RESET << ": " << msg
@@ -64,11 +66,6 @@ std::string getDatetime() {
 	return std::string(buffer);
 }
 
-void removeNewlines(std::string& str) {
-	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-}
-
 void replaceString(std::string& subject, const std::string& search,
 				   const std::string& replace) {
 	size_t pos = 0;
@@ -86,4 +83,22 @@ std::string toUppercase(std::string s) {
 	replaceString(s, "|", "\\");
 
 	return s;
+}
+
+void strip(std::string& str) {
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+	std::size_t start = 0;
+	std::size_t end	  = str.length();
+
+	while (start < end && std::isspace(str[start])) {
+		start++;
+	}
+
+	while (end > start && std::isspace(str[end - 1])) {
+		end--;
+	}
+
+	str = str.substr(start, end - start);
 }
