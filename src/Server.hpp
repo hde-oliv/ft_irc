@@ -19,7 +19,7 @@
 #define LOSTCONNECTION 0
 #define QUITED 1
 #define KICKED 2
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 5
 
 class Server {
 	typedef std::vector<std::string> Tokens;
@@ -31,24 +31,22 @@ class Server {
 	void startServer();
 
 	private:
-	void	setupSocket();
-	void	clientEventHandling();
-	void	serverEventHandling();
-	void	newClientHandling();
-	void	readFromClient(pollfd p);
-	void	sendToClient(pollfd p);
-	void	ejectClient(int clientFd, int reason);
-	void	ejectAllClients();
-	pollfd &getAvailablePollFd();
+	void setupSocket();
+	void clientEventHandling();
+	void serverEventHandling();
+	void newClientHandling();
+	void readFromClient(pollfd p);
+	void sendToClient(pollfd p);
+	void ejectClient(int clientFd, int reason);
+	void ejectAllClients();
 
 	std::string			  creationDatetime;
 	std::string			  password;
 	int					  port;
 	int					  server_fd;
-	int					  poll_index;
 	std::map<int, Client> clients;
 	std::vector<Channel>  channels;
-	struct pollfd		  pollfds[MAX_CLIENTS];
+	std::vector<pollfd>	  pollFds;
 	struct sockaddr_in	  address;
 
 	std::string executeClientMessage(pollfd p, std::string msg);
