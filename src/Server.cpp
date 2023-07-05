@@ -132,6 +132,9 @@ void Server::newClientHandling() {
 	}
 }
 
+// NOTE: I think that when running this will produce a lot of vectors of size 1
+// And in the current state of readFromClient it does not seem to break further
+// development of the other commands and stuff.
 void recvLoop(pollfd p) {
 	char		buffer[BUFFER_SIZE];
 	ssize_t		bytesRead;
