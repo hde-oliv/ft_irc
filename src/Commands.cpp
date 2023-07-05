@@ -93,12 +93,12 @@ bool Server::validNickname(std::string nickname) {
 }
 
 bool Server::nicknameAlreadyExists(std::string nickname) {
-	std::map<int, Client>::iterator it;
+	std::map<int, Client>::iterator it = clients.begin();
 
 	std::string uppercaseNickname = toUppercase(nickname);
 
 	for (; it != clients.end(); it++) {
-		if (toUppercase(it->second.getNickname()) == uppercaseNickname)
+		if (toUppercase((it->second).getNickname()) == uppercaseNickname)
 			return true;
 	}
 	return false;
