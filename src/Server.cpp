@@ -146,7 +146,8 @@ void recvLoop(pollfd p) {
 
 	while (keepReading) {
 		std::memset(buffer, 0, BUFFER_SIZE);
-		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
+		bytesRead = recv(p.fd, buffer, BUFFER_SIZE,
+						 MSG_PEEK);	 // MSG_PEEK keeps data in the fd
 		if (bytesRead > 0) {
 			strBuff.append(buffer);
 			if (bytesRead < BUFFER_SIZE) {
@@ -178,6 +179,8 @@ void Server::readFromClient(pollfd p) {
 
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
+
+	recvLoop(p);
 
 	std::memset(buffer, 0, BUFFER_SIZE);
 	bytesRead = recv(p.fd, buffer, 1, 0);

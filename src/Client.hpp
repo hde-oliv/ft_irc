@@ -4,7 +4,7 @@
 #include <string>
 
 #define MAX_NICKNAME 9
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 512
 
 #define PASS_FLAG 2
 #define USER_FLAG 4
