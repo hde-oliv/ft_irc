@@ -132,9 +132,7 @@ void Server::newClientHandling() {
 	}
 }
 
-void Server::readFromClient(pollfd p) {
-	Client *c = &clients[p.fd];
-
+void recvLoop(pollfd p) {
 	char		buffer[BUFFER_SIZE];
 	ssize_t		bytesRead;
 	bool		keepReading = true;
@@ -170,6 +168,14 @@ void Server::readFromClient(pollfd p) {
 			clientBuff.erase();
 		}
 	}
+}
+
+void Server::readFromClient(pollfd p) {
+	Client *c = &clients[p.fd];
+
+	char	buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+
 	if (bytesRead == -1) {
 		// TODO: implement ejectAllClients();
 		ejectClient(p.fd, LOSTCONNECTION);
