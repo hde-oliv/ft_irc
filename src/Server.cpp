@@ -100,7 +100,7 @@ void Server::clientEventHandling() {
 				sendToClient((*it));
 			} else if ((*it).revents & POLLERR) {
 				std::cout << "POLLERR caught" << std::endl;
-				ejectClient((*it).fd, -1);
+				unexpectedDisconnectHandling(*it);
 			} else if ((*it).revents & POLLHUP) {
 				std::cout << "POLLHUP caught" << std::endl;
 			} else if ((*it).revents & POLLNVAL) {
