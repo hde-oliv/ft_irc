@@ -80,7 +80,7 @@ std::string Server::quit(pollfd p, Command &t) {
 
 	ss << ":" << c->getNickname();
 	if (t.args.size()) {
-		ss << " QUIT " << t.args[1];
+		ss << " QUIT " << t.args[0];
 	} else {
 		ss << " QUIT :Gone to have lunch";
 	}

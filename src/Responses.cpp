@@ -142,7 +142,7 @@ std::string Server::unknowncommand(pollfd p, std::string command) {
 	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 421 " << c->getNickname();
-	ss << command;
+	ss << " " << command;
 	ss << " :Unknown command";
 	ss << "\r\n";
 
