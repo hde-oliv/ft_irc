@@ -13,19 +13,24 @@
 #include <vector>
 
 class Channel {
-    public:
-    Channel(void);
-    ~Channel(void);
+	public:
+	Channel(void);
+	Channel(std::string name, std::string topic, std::string host);
+	~Channel(void);
+	std::string getName();
+	void		setName(std::string newName);
+	std::string getTopic();
+	void		setTopic(std::string newTopic);
 
-    private:
-    std::string         name;
-    std::string         topic;
-    std::string         host;
-    std::string         password;
-    std::vector<Client> operators;
-    std::vector<Client> clients;
-    unsigned int        modes;
-    int                 limit;
+	private:
+	std::string			name;
+	std::string			topic;
+	std::string			host;
+	std::string			password;
+	std::vector<Client> operators;
+	std::vector<Client> clients;
+	unsigned int		modes;
+	int					limit;
 };
 
 #endif

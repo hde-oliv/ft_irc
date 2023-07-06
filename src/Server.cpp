@@ -257,6 +257,9 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		response = user(p, cm);
 	} else if (cm.cmd == "OPER") {
 		response = oper(p, cm);
+	} else if (cm.cmd == "JOIN") {
+		response = join(p, cm);
+		std::cout << response << std::endl;
 	} else if (cm.cmd == "QUIT") {
 		response = quit(p, cm);
 	} else {
@@ -295,7 +298,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {

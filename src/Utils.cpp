@@ -75,7 +75,7 @@ void replaceString(std::string& subject, const std::string& search,
 	}
 }
 
-std::string toUppercase(std::string s) {
+std::string toIrcUpperCase(std::string s) {
 	// NOTE: Check this later
 	transform(s.begin(), s.end(), s.begin(), ::toupper);
 	replaceString(s, "{", "[");
@@ -102,3 +102,20 @@ void strip(std::string& str) {
 
 	str = str.substr(start, end - start);
 }
+
+std::string toValidChannelName(std::string rawName) {
+	if (rawName.length() < 1)
+		throw std::logic_error("No channel name provided");
+	std::string prefixes = "&#!+";
+	if (prefixes.find(rawName.at(0)) == std::string::npos)
+		throw std::logic_error("Invalid channel prefix");
+	if (rawName.length() > 50)
+		throw std::logic_error("Channel name is too long");
+	std::string insensitiveName = toIrcUpperCase(rawName);
+	std::string forbiddenChars	= " \a,:";
+	for (std::size_t i = 0; i < forbiddenChars.size(); i++) {
+		if (insensitiveName.find(forbiddenChars.at(i)) != std::string::npos)
+			throw std::logic_error("Channel name have a forbidden character");
+	}
+	return insensitiveName;
+};

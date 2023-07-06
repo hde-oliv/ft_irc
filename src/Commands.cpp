@@ -71,9 +71,64 @@ std::string Server::oper(pollfd p, Command &t) {
 	// TODO: Send MODE +o
 	return youreoper(p);
 }
+std::string Server::join(pollfd p, Command &t) {
+	std::stringstream ss;
+	(void)t;
+	Client	   *c	 = &clients[p.fd];
+	Channel	*chan = NULL;
+	std::string realName;
+	ss << ":localhost ";
+	try {
+		realName = toValidChannelName(t.args[0]);
+	} catch (std::exception &e) {
+		ss << "403 " << c->getNickname() << " " << realName
+		   << " :No such channel\r\n";
+		return ss.str();
+	}
 
+	std::vector<Channel>::iterator it = channels.begin();
+	while (it < channels.end()) {
+		if ((*it).getName() == t.args[0]) {
+			std::cout << "Join channel " << t.args[0] << std::endl;
+			chan = &(*it);
+		}
+		it++;
+	}
+	if (chan == NULL) {
+		channels.push_back(Channel(t.args[0], "", c->getHostname()));
+	}
+	chan = &channels.back();
+
+	if (chan->getTopic().length() > 0)
+		ss << "332 " << c->getNickname() << " " << realName << " :"
+		   << chan->getTopic() << "\r\n";
+	else
+		ss << "332 " << c->getNickname() << " " << realName
+		   << " :Simple topic\r\n";
+	// ss << "331 " << c->getNickname() << " " << realName
+	//    << " :no topic is set\r\n";
+	return ss.str();
+	/*
+PASS :1234
+USER hcduller * localhost :purple
+NICK henrique
+JOIN +teste 1234
+	403	ERR_NOSUCHCHANNEL	"<channel name> :No such channel"
+	461	ERR_NEEDMOREPARAMS	"<command> :Not enough parameters"
+	474	ERR_BANNEDFROMCHAN	"<channel> :Cannot join channel (+b)"
+	473	ERR_INVITEONLYCHAN	"<channel> :Cannot join channel (+i)"
+	475	ERR_BADCHANNELKEY	"<channel> :Cannot join channel (+k)"
+	471	ERR_CHANNELISFULL	"<channel> :Cannot join channel (+l)"
+	ERR_BADCHANMASK //no definition found in rfc
+	403	ERR_NOSUCHCHANNEL	"<channel name> :No such channel"
+	405	ERR_TOOMANYCHANNELS	"<channel name> :You have joined too many \
+								 channels"
+	331	RPL_NOTOPIC			"<channel> :No topic is set"
+	332	RPL_TOPIC			"<channel> :<topic>"
+	*/
+}
 std::string Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// :John!john123@irc.example.com QUIT :Client exited unexpectedly
@@ -111,10 +166,10 @@ bool Server::validNickname(std::string nickname) {
 bool Server::nicknameAlreadyExists(std::string nickname) {
 	std::map<int, Client>::iterator it = clients.begin();
 
-	std::string uppercaseNickname = toUppercase(nickname);
+	std::string uppercaseNickname = toIrcUpperCase(nickname);
 
 	for (; it != clients.end(); it++) {
-		if (toUppercase((it->second).getNickname()) == uppercaseNickname)
+		if (toIrcUpperCase((it->second).getNickname()) == uppercaseNickname)
 			return true;
 	}
 	return false;

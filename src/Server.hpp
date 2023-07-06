@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <exception>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -58,6 +59,7 @@ class Server {
 	std::string nick(pollfd p, Command &t);
 	std::string quit(pollfd p, Command &t);
 	std::string oper(pollfd p, Command &t);
+	std::string join(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
