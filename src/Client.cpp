@@ -5,6 +5,7 @@ Client::Client() {
 	this->registration = 0;
 	this->knowPassword = false;
 	this->welcome	   = false;
+	this->connected	   = true;
 }
 
 Client::~Client() {}

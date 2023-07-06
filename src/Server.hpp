@@ -38,6 +38,7 @@ class Server {
 	void readFromClient(pollfd p);
 	void sendToClient(pollfd p);
 	void ejectClient(int clientFd, int reason);
+	void ejectDisconnected();
 	void ejectAllClients();
 
 	std::string			  creationDatetime;
@@ -56,6 +57,8 @@ class Server {
 	std::string nick(pollfd p, Command &t);
 	std::string quit(pollfd p, Command &t);
 	std::string oper(pollfd p, Command &t);
+
+	void recvLoop(pollfd p);
 
 	std::string motd(pollfd p);
 	std::string welcome(pollfd p);

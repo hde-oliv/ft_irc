@@ -57,7 +57,16 @@ void Server::setupSocket() {
 		panic("Server::listen", "Failed", P_EXIT);
 	}
 }
-
+void Server::ejectDisconnected() {
+	for (std::map<int, Client>::reverse_iterator it = clients.rbegin();
+		 it != clients.rend(); it--) {
+		if (!(*it).second.connected) {
+			std::cout << "Should have disconnected someone" << std::endl;
+			ejectClient((*it).second.getFd(), QUITED);
+			break;
+		}
+	}
+}
 void Server::startServer() {
 	setupSocket();
 	int		r;
@@ -76,7 +85,7 @@ void Server::startServer() {
 		if (r >= 0) {
 			serverEventHandling();
 			clientEventHandling();
-			// ejections should happen after both!
+			ejectDisconnected();
 		}
 	}
 	close(server_fd);
@@ -144,21 +153,18 @@ void Server::newClientHandling() {
 // NOTE: I think that when running this will produce a lot of vectors of size 1
 // And in the current state of readFromClient it does not seem to break further
 // development of the other commands and stuff.
-void recvLoop(pollfd p) {
-	char		buffer[BUFFER_SIZE];
-	ssize_t		bytesRead;
-	bool		keepReading = true;
-	std::string strBuff		= "";
-	std::string clientBuff	= "";  // this will be moved into client struct
-	std::vector<std::string> cmds;
-	size_t					 pos;
+void Server::recvLoop(pollfd p) {
+	char	buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+	size_t	pos;
+	bool	keepReading = true;
+	Client *c			= &clients[p.fd];
 
 	while (keepReading) {
 		std::memset(buffer, 0, BUFFER_SIZE);
-		bytesRead = recv(p.fd, buffer, BUFFER_SIZE,
-						 MSG_PEEK);	 // MSG_PEEK keeps data in the fd
+		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
 		if (bytesRead > 0) {
-			strBuff.append(buffer);
+			c->inBuffer.append(buffer);
 			if (bytesRead < BUFFER_SIZE) {
 				keepReading = false;
 			}
@@ -166,19 +172,11 @@ void recvLoop(pollfd p) {
 			keepReading = false;
 		}
 	}
-	clientBuff.append(strBuff);
-	strBuff.erase();
-	keepReading = true;
-	while (keepReading) {
-		// (pos = clientBuff.find("\n\r")) != std::string::npos
-		if (clientBuff.length() == 0) break;
-		pos = clientBuff.find("\r\n");
+	while (c->inBuffer.find("\r\n") != std::string::npos) {
+		pos = c->inBuffer.find("\r\n");
 		if (pos > 0) {
-			cmds.push_back(clientBuff.substr(0, pos + 2));
-			clientBuff.erase(0, pos + 2);
-		} else {
-			cmds.push_back(clientBuff);
-			clientBuff.erase();
+			c->cmdVec.push_back(c->inBuffer.substr(0, pos + 2));
+			c->inBuffer.erase(0, pos + 2);
 		}
 	}
 }
@@ -186,40 +184,20 @@ void recvLoop(pollfd p) {
 void Server::readFromClient(pollfd p) {
 	Client *c = &clients[p.fd];
 
-	char	buffer[BUFFER_SIZE];
-	ssize_t bytesRead;
-
 	recvLoop(p);
 
-	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, 1, 0);
-
-	if (bytesRead == -1) {
-		// TODO: implement ejectAllClients();
-		ejectClient(p.fd, LOSTCONNECTION);
-		panic("Server::recv", "Failed", P_CONTINUE);
-		return;
-	} else if (bytesRead == 0) {
-		ejectClient(p.fd, LOSTCONNECTION);
-		std::cout << "This is where there would be a disconnect event"
-				  << std::endl;
-	} else {
-		c->setReadData(buffer);
-
-		if (c->getReadData().find("\r\n") != std::string::npos) {
-			std::cout << "Client " << p.fd << " sent: ";
-			std::cout << RED << c->getReadData() << RESET;
-
-			std::string response = executeClientMessage(p, c->getReadData());
-
-			// TODO: Remove this later
-			if (response == "KICK CLIENT") {
-				ejectClient(p.fd, -1);
-			}
-
-			c->setSendData(response);
+	for (std::vector<std::string>::iterator it = c->cmdVec.begin();
+		 it < c->cmdVec.end(); it++) {
+		std::cout << "Client " << p.fd << " sent: ";
+		std::cout << RED << (*it) << RESET;
+		std::string response = executeClientMessage(p, (*it));
+		if (response == "KICK CLIENT") {
+			c->connected = false;
+			// ejectClient(p.fd, KICKED);
 		}
+		c->setSendData(response);
 	}
+	c->cmdVec.clear();
 }
 
 void Server::sendToClient(pollfd p) {

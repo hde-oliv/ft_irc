@@ -2,6 +2,7 @@
 #define CLIENT_HPP
 
 #include <string>
+#include <vector>
 
 #define MAX_NICKNAME 9
 #define BUFFER_SIZE 512
@@ -17,6 +18,10 @@ class Client {
 	public:
 	Client(void);
 	~Client(void);
+
+	std::string				 inBuffer;
+	std::vector<std::string> cmdVec;
+	bool					 connected;
 
 	void setFd(int fd);
 	void setReadData(std::string data);
