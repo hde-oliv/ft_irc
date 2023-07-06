@@ -19,7 +19,7 @@
 #define LOSTCONNECTION 0
 #define QUITED 1
 #define KICKED 2
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 5
 
 class Server {
 	public:
@@ -41,15 +41,15 @@ class Server {
 	pollfd &getAvailablePollFd();
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
+	void	ejectDisconnected();
 
 	std::string			  creationDatetime;
 	std::string			  password;
 	int					  port;
 	int					  server_fd;
-	int					  poll_index;
 	std::map<int, Client> clients;
 	std::vector<Channel>  channels;
-	struct pollfd		  pollfds[MAX_CLIENTS];
+	std::vector<pollfd>	  pollFds;
 	struct sockaddr_in	  address;
 
 	std::string executeClientMessage(pollfd p, std::string msg);
@@ -59,6 +59,8 @@ class Server {
 	std::string nick(pollfd p, Command &t);
 	std::string quit(pollfd p, Command &t);
 	std::string oper(pollfd p, Command &t);
+
+	void recvLoop(pollfd p);
 
 	std::string motd(pollfd p);
 	std::string welcome(pollfd p);

@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -57,46 +58,62 @@ void Server::setupSocket() {
 		panic("Server::listen", "Failed", P_EXIT);
 	}
 }
-
+void Server::ejectDisconnected() {
+	for (std::map<int, Client>::reverse_iterator it = clients.rbegin();
+		 it != clients.rend(); it--) {
+		if (!(*it).second.connected) {
+			std::cout << "Should have disconnected someone" << std::endl;
+			ejectClient((*it).second.getFd(), QUITED);
+			break;
+		}
+	}
+}
 void Server::startServer() {
 	setupSocket();
-	std::memset(pollfds, 0, sizeof(pollfd) * MAX_CLIENTS);
+	int		r;
+	pollfd *cVectorPollfds;
+	nfds_t	pollSize;
 
-	pollfds[0].fd	  = server_fd;
-	pollfds[0].events = POLLIN;
-	poll_index		  = 0;
-
+	struct pollfd server;
+	server.fd	   = server_fd;
+	server.events  = POLLIN;
+	server.revents = 0;
+	pollFds.push_back(server);
 	while (g_online) {
-		int r = poll(pollfds, poll_index + 1, -1);
-
+		cVectorPollfds = pollFds.data();
+		pollSize	   = static_cast<nfds_t>(pollFds.size());
+		r			   = poll(cVectorPollfds, pollSize, -1);
 		if (r >= 0) {
 			serverEventHandling();
 			clientEventHandling();
+			ejectDisconnected();
 		}
 	}
-
 	close(server_fd);
 }
 
 void Server::serverEventHandling() {
-	if (pollfds[0].revents & POLLIN) {
+	if (pollFds[0].revents & POLLIN) {
 		newClientHandling();
 	}
 }
 
 void Server::clientEventHandling() {
-	for (int i = 1; i <= MAX_CLIENTS; i++) {
-		if (pollfds[i].revents & POLLIN) {
-			readFromClient(pollfds[i]);
-		} else if (pollfds[i].revents & POLLOUT) {
-			sendToClient(pollfds[i]);
-		} else if (pollfds[i].revents & POLLERR) {
-			std::cout << "POLLERR caught" << std::endl;
-			ejectClient(pollfds[i].fd, -1);
-		} else if (pollfds[i].revents & POLLHUP) {
-			std::cout << "POLLHUP caught" << std::endl;
-		} else if (pollfds[i].revents & POLLNVAL) {
-			std::cout << "POLLNVAL caught" << std::endl;
+	std::vector<pollfd>::iterator it = pollFds.begin();
+	if (pollFds.size() > 1) {
+		while (++it < pollFds.end()) {
+			if ((*it).revents & POLLIN) {
+				readFromClient((*it));
+			} else if ((*it).revents & POLLOUT) {
+				sendToClient((*it));
+			} else if ((*it).revents & POLLERR) {
+				std::cout << "POLLERR caught" << std::endl;
+				ejectClient((*it).fd, -1);
+			} else if ((*it).revents & POLLHUP) {
+				std::cout << "POLLHUP caught" << std::endl;
+			} else if ((*it).revents & POLLNVAL) {
+				std::cout << "POLLNVAL caught" << std::endl;
+			}
 		}
 	}
 }
@@ -113,17 +130,18 @@ void Server::newClientHandling() {
 		return;
 	}
 
-	if (poll_index < MAX_CLIENTS) {
-		Client	newClient;
-		pollfd &clientPollFd = getAvailablePollFd();
+	if (pollFds.size() + 1 < MAX_CLIENTS) {
+		Client newClient;
+		pollfd newPollFd;
 
 		newClient.setHostname(inet_ntoa(client_address.sin_addr));
 		newClient.setFd(fd);
+		clients[fd] = newClient;
 
-		clients[fd]			= newClient;
-		clientPollFd.fd		= fd;
-		clientPollFd.events = POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
-		poll_index++;
+		newPollFd.fd	  = fd;
+		newPollFd.events  = POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL;
+		newPollFd.revents = 0;
+		pollFds.push_back(newPollFd);
 		std::cout << "New connection stablished with "
 				  << newClient.getHostname() << " on fd " << fd << std::endl;
 	} else {
@@ -136,21 +154,18 @@ void Server::newClientHandling() {
 // NOTE: I think that when running this will produce a lot of vectors of size 1
 // And in the current state of readFromClient it does not seem to break further
 // development of the other commands and stuff.
-void recvLoop(pollfd p) {
-	char		buffer[BUFFER_SIZE];
-	ssize_t		bytesRead;
-	bool		keepReading = true;
-	std::string strBuff		= "";
-	std::string clientBuff	= "";  // this will be moved into client struct
-	std::vector<std::string> cmds;
-	size_t					 pos;
+void Server::recvLoop(pollfd p) {
+	char	buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+	size_t	pos;
+	bool	keepReading = true;
+	Client *c			= &clients[p.fd];
 
 	while (keepReading) {
 		std::memset(buffer, 0, BUFFER_SIZE);
-		bytesRead = recv(p.fd, buffer, BUFFER_SIZE,
-						 MSG_PEEK);	 // MSG_PEEK keeps data in the fd
+		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
 		if (bytesRead > 0) {
-			strBuff.append(buffer);
+			c->inBuffer.append(buffer);
 			if (bytesRead < BUFFER_SIZE) {
 				keepReading = false;
 			}
@@ -158,19 +173,11 @@ void recvLoop(pollfd p) {
 			keepReading = false;
 		}
 	}
-	clientBuff.append(strBuff);
-	strBuff.erase();
-	keepReading = true;
-	while (keepReading) {
-		// (pos = clientBuff.find("\n\r")) != std::string::npos
-		if (clientBuff.length() == 0) break;
-		pos = clientBuff.find("\r\n");
+	while (c->inBuffer.find("\r\n") != std::string::npos) {
+		pos = c->inBuffer.find("\r\n");
 		if (pos > 0) {
-			cmds.push_back(clientBuff.substr(0, pos));
-			clientBuff.erase(0, pos + 2);
-		} else {
-			cmds.push_back(clientBuff);
-			clientBuff.erase();
+			c->cmdVec.push_back(c->inBuffer.substr(0, pos + 2));
+			c->inBuffer.erase(0, pos + 2);
 		}
 	}
 }
@@ -178,40 +185,20 @@ void recvLoop(pollfd p) {
 void Server::readFromClient(pollfd p) {
 	Client *c = &clients[p.fd];
 
-	char	buffer[BUFFER_SIZE];
-	ssize_t bytesRead;
-
 	recvLoop(p);
 
-	std::memset(buffer, 0, BUFFER_SIZE);
-	bytesRead = recv(p.fd, buffer, 1, 0);
-
-	if (bytesRead == -1) {
-		// TODO: implement ejectAllClients();
-		ejectClient(p.fd, LOSTCONNECTION);
-		panic("Server::recv", "Failed", P_CONTINUE);
-		return;
-	} else if (bytesRead == 0) {
-		ejectClient(p.fd, LOSTCONNECTION);
-		std::cout << "This is where there would be a disconnect event"
-				  << std::endl;
-	} else {
-		c->setReadData(buffer);
-
-		if (c->getReadData().find("\r\n") != std::string::npos) {
-			std::cout << "Client " << p.fd << " sent: ";
-			std::cout << RED << c->getReadData() << RESET;
-
-			std::string response = executeClientMessage(p, c->getReadData());
-
-			// TODO: Remove this later
-			if (response == "") {
-				ejectClient(p.fd, -1);
-			}
-
-			c->setSendData(response);
+	for (std::vector<std::string>::iterator it = c->cmdVec.begin();
+		 it < c->cmdVec.end(); it++) {
+		std::cout << "Client " << p.fd << " sent: ";
+		std::cout << RED << (*it) << RESET;
+		std::string response = executeClientMessage(p, (*it));
+		if (response == "KICK CLIENT") {
+			c->connected = false;
+			// ejectClient(p.fd, KICKED);
 		}
+		c->setSendData(response);
 	}
+	c->cmdVec.clear();
 }
 
 void Server::sendToClient(pollfd p) {
@@ -236,15 +223,16 @@ void Server::sendToClient(pollfd p) {
 }
 
 void Server::ejectClient(int clientFd, int reason) {
-	close(clientFd);
-
-	for (int i = 1; i < MAX_CLIENTS; i++) {
-		if (pollfds[i].fd == clientFd)
-			std::memset(&pollfds[i], 0, sizeof(pollfd));
+	for (std::vector<pollfd>::iterator it = pollFds.begin(); it < pollFds.end();
+		 it++) {
+		if ((*it).fd == clientFd) {
+			close(clientFd);
+			std::memset(&(*it), 0, sizeof(pollfd));
+			pollFds.erase(it);
+			break;
+		}
 	}
-
 	clients.erase(clientFd);
-	poll_index--;
 
 	switch (reason) {
 		case LOSTCONNECTION:
@@ -262,24 +250,6 @@ void Server::ejectClient(int clientFd, int reason) {
 			std::cout << "Client successfully ejected. (fd : " << clientFd
 					  << ")" << std::endl;
 	}
-}
-
-pollfd &Server::getAvailablePollFd() {
-	int i = 1;
-
-	while (i < MAX_CLIENTS) {
-		if (pollfds[i].fd == 0) {
-			break;
-		}
-		i++;
-	}
-
-	if (i == MAX_CLIENTS) {
-		panic("Server::getAvailablePollFd",
-			  "Server could not find an available pollfd.", P_CONTINUE);
-	}
-
-	return pollfds[i];
 }
 
 // Command section
