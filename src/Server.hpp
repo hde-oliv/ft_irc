@@ -58,6 +58,7 @@ class Server {
 	std::string nick(pollfd p, Command &t);
 	std::string quit(pollfd p, Command &t);
 	std::string oper(pollfd p, Command &t);
+	std::string ping(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
