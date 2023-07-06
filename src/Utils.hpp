@@ -38,6 +38,8 @@ std::string getDatetime(void);
 void		replaceString(std::string &subject, std::string &search,
 						  std::string &replace);
 Command		stringToCommand(std::string source);
-std::string toUppercase(std::string s);
+std::string toIrcUpperCase(std::string s);
 void		strip(std::string &str);
 #endif
+
+std::string toValidChannelName(std::string rawName);

@@ -100,7 +100,7 @@ void Server::clientEventHandling() {
 				sendToClient((*it));
 			} else if ((*it).revents & POLLERR) {
 				std::cout << "POLLERR caught" << std::endl;
-				ejectClient((*it).fd, -1);
+				unexpectedDisconnectHandling(*it);
 			} else if ((*it).revents & POLLHUP) {
 				std::cout << "POLLHUP caught" << std::endl;
 			} else if ((*it).revents & POLLNVAL) {
@@ -162,6 +162,7 @@ void Server::recvLoop(pollfd p) {
 				keepReading = false;
 			}
 		} else {
+			unexpectedDisconnectHandling(p);
 			keepReading = false;
 		}
 	}
@@ -256,6 +257,9 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		response = user(p, cm);
 	} else if (cm.cmd == "OPER") {
 		response = oper(p, cm);
+	} else if (cm.cmd == "JOIN") {
+		response = join(p, cm);
+		std::cout << response << std::endl;
 	} else if (cm.cmd == "QUIT") {
 		response = quit(p, cm);
 	} else if (cm.cmd == "PING") {
@@ -286,7 +290,7 @@ void Server::broadcastMessage(pollfd sender, std::string message) {
 void Server::disconnectHandling() {
 	std::map<int, Client>::reverse_iterator it = clients.rbegin();
 
-	for (; it != clients.rend(); it--) {
+	for (; it != clients.rend(); it++) {
 		if ((it->second).getToDisconnect()) {
 			std::cout << "Should have disconnected someone." << std::endl;
 			ejectClient(it->first, QUITED);
@@ -296,7 +300,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
