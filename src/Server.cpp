@@ -157,7 +157,7 @@ void Server::recvLoop(pollfd p) {
 		std::memset(buffer, 0, BUFFER_SIZE);
 		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
 		if (bytesRead > 0) {
-			c->getInBuffer().append(buffer);
+			c->inBuffer.append(buffer);
 			if (bytesRead < BUFFER_SIZE) {
 				keepReading = false;
 			}
@@ -165,11 +165,11 @@ void Server::recvLoop(pollfd p) {
 			keepReading = false;
 		}
 	}
-	while (c->getInBuffer().find("\r\n") != std::string::npos) {
-		pos = c->getInBuffer().find("\r\n");
+	while (c->inBuffer.find("\r\n") != std::string::npos) {
+		pos = c->inBuffer.find("\r\n");
 		if (pos > 0) {
-			c->getCmdVec().push_back(c->getInBuffer().substr(0, pos + 2));
-			c->getInBuffer().erase(0, pos + 2);
+			c->cmdVec.push_back(c->inBuffer.substr(0, pos + 2));
+			c->inBuffer.erase(0, pos + 2);
 		}
 	}
 }
@@ -179,10 +179,9 @@ void Server::readFromClient(pollfd p) {
 
 	recvLoop(p);
 
-	std::vector<std::string>		  &cmdVec = c->getCmdVec();
-	std::vector<std::string>::iterator it	  = cmdVec.begin();
+	std::vector<std::string>::iterator it = c->cmdVec.begin();
 
-	for (; it < cmdVec.end(); it++) {
+	for (; it < c->cmdVec.end(); it++) {
 		std::cout << "Client " << p.fd << " sent: ";
 		std::cout << RED << (*it) << RESET;
 		std::string response = executeClientMessage(p, (*it));
@@ -191,7 +190,7 @@ void Server::readFromClient(pollfd p) {
 		}
 		c->setSendData(response);
 	}
-	cmdVec.clear();
+	c->cmdVec.clear();
 }
 
 void Server::sendToClient(pollfd p) {
@@ -255,6 +254,10 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		response = pass(p, cm);
 	} else if (cm.cmd == "USER") {
 		response = user(p, cm);
+	} else if (cm.cmd == "OPER") {
+		response = oper(p, cm);
+	} else if (cm.cmd == "QUIT") {
+		response = quit(p, cm);
 	} else {
 		response = unknowncommand(p, cm.cmd);
 	}

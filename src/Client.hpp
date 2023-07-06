@@ -19,6 +19,9 @@ class Client {
 	Client(void);
 	~Client(void);
 
+	std::string				 inBuffer;
+	std::vector<std::string> cmdVec;
+
 	void setFd(int fd);
 	void setReadData(std::string data);
 	void setSendData(std::string data);
@@ -27,8 +30,8 @@ class Client {
 	void setUsername(std::string name);
 	void setRealname(std::string name);
 	void setNickname(std::string name);
-	void setInBuffer(std::string buffer);
-	void setCmdVec(std::vector<std::string> vector);
+	// void setInBuffer(std::string buffer);
+	// void setCmdVec(std::vector<std::string> vector);
 	void setRegistration(int flag);
 	void setOp(bool value);
 	void setKnowPassword(bool value);
@@ -51,9 +54,9 @@ class Client {
 	std::string getRealname() const;
 	std::string getReadData() const;
 	std::string getSendData() const;
-	std::string getInBuffer() const;
+	// std::string getInBuffer() const;
 
-	std::vector<std::string>& getCmdVec();
+	// std::vector<std::string>& getCmdVec();
 
 	private:
 	int			fd;
@@ -69,9 +72,6 @@ class Client {
 	std::string realname;
 	std::string readData;
 	std::string sendData;
-	std::string inBuffer;
-
-	std::vector<std::string> cmdVec;
 };
 
 // TODO: Consider this later
