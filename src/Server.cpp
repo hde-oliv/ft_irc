@@ -162,6 +162,7 @@ void Server::recvLoop(pollfd p) {
 				keepReading = false;
 			}
 		} else {
+			unexpectedDisconnectHandling(p);
 			keepReading = false;
 		}
 	}
@@ -284,7 +285,7 @@ void Server::broadcastMessage(pollfd sender, std::string message) {
 void Server::disconnectHandling() {
 	std::map<int, Client>::reverse_iterator it = clients.rbegin();
 
-	for (; it != clients.rend(); it--) {
+	for (; it != clients.rend(); it++) {
 		if ((it->second).getToDisconnect()) {
 			std::cout << "Should have disconnected someone." << std::endl;
 			ejectClient(it->first, QUITED);
