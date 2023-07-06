@@ -41,7 +41,6 @@ class Server {
 	pollfd &getAvailablePollFd();
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
-	void	ejectDisconnected();
 
 	std::string			  creationDatetime;
 	std::string			  password;

@@ -5,7 +5,7 @@ Client::Client() {
 	this->registration = 0;
 	this->knowPassword = false;
 	this->welcome	   = false;
-	this->connected	   = true;
+	this->toDisconnect = false;
 }
 
 Client::~Client() {}
@@ -22,6 +22,9 @@ std::string Client::getReadData() const { return readData; }
 std::string Client::getSendData() const { return sendData; }
 std::string Client::getServername() const { return servername; }
 std::string Client::getRealname() const { return realname; }
+std::string Client::getInBuffer() const { return inBuffer; }
+
+std::vector<std::string> Client::getCmdVec() const { return cmdVec; }
 
 void Client::setOp(bool value) { op = value; }
 void Client::setWelcome(bool value) { welcome = value; }
@@ -35,6 +38,8 @@ void Client::setServername(std::string name) { servername = name; }
 void Client::setSendData(std::string data) { sendData += data; }
 void Client::setReadData(std::string data) { readData += data; }
 void Client::setToDisconnect(bool value) { toDisconnect = value; }
+void Client::setInBuffer(std::string buffer) { inBuffer = buffer; }
+void Client::setCmdVec(std::vector<std::string> vector) { cmdVec = vector; }
 
 void Client::setNickname(std::string name) {
 	if (name.length() > 9) {
