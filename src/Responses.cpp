@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "Server.hpp"
 
 std::string Server::needmoreparams(pollfd p, std::string command) {
@@ -130,6 +132,18 @@ std::string Server::youreoper(pollfd p) {
 
 	ss << ":localhost 381 " << c->getNickname();
 	ss << " :You are now an IRC operator";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::unknowncommand(pollfd p, std::string command) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 421 " << c->getNickname();
+	ss << command;
+	ss << " :Unknown command";
 	ss << "\r\n";
 
 	return ss.str();

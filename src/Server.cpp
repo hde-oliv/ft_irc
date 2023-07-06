@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -204,7 +205,7 @@ void Server::readFromClient(pollfd p) {
 			std::string response = executeClientMessage(p, c->getReadData());
 
 			// TODO: Remove this later
-			if (response == "KICK CLIENT") {
+			if (response == "") {
 				ejectClient(p.fd, -1);
 			}
 
@@ -284,33 +285,85 @@ pollfd &Server::getAvailablePollFd() {
 // Command section
 
 std::string Server::executeClientMessage(pollfd p, std::string msg) {
-	std::string registration[] = { "PASS", "USER", "NICK" };
+	std::vector<std::string> cmdList{
+		"NICK",		"PASS",	  "USER",	"QUIT",	   "OPER",	 "JOIN",  "PING",
+		"PART",		"MODE",	  "NAMES",	"LIST",	   "INVITE", "KICK",  "VERSION",
+		"STATS",	"LINKS",  "TIME",	"CONNECT", "TRACE",	 "ADMIN", "INFO",
+		"PRIVMSG",	"NOTICE", "WHO",	"WHOIS",   "WHOWAS", "KILL",  "PONG",
+		"ERROR",	"AWAY",	  "REHASH", "RESTART", "SUMMON", "USERS", "WALLOPS",
+		"USERHOST", "ISON",	  "SQUIT",	"SERVER"
+	};
+	std::vector<std::string>::iterator it;
 
-	Client *c  = &clients[p.fd];
-	Command cm = stringToCommand(msg);
+	Client	   *c  = &clients[p.fd];
+	Command		cm = stringToCommand(msg);
+	std::string response;
 
 	std::cout << YELLOW << msg << RESET;
 	std::cout << BLUE << cm.cmd << RESET << std::endl;
 	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
-	// TODO: Refactor
-	if (c->getRegistration() != (PASS_FLAG | USER_FLAG | NICK_FLAG)) {
-		std::string response;
+	it = find(cmdList.begin(), cmdList.end(), cm.cmd);
 
-		if (cm.cmd == "PASS")
-			response = pass(p, cm);
-		else if (cm.cmd == "USER")
-			response = user(p, cm);
-		else if (cm.cmd == "NICK")
-			response = nick(p, cm);
+	ssize_t index;
 
-		if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
-			!c->getWelcome()) {
-			c->setWelcome(true);
-			response = welcome(p);
-		}
-		return response;
+	if (it != cmdList.end()) {
+		index = it - cmdList.begin();
+	} else {
+		index = -1;
 	}
 
-	return "KICK CLIENT";
+	switch (index) {
+		case 0:
+			response = nick(p, cm);
+		case 1:
+			response = pass(p, cm);
+		case 2:
+			response = user(p, cm);
+		case -1:
+		default:
+			response = unknowncommand(p, cm.cmd);
+	}
+
+	if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
+		!c->getWelcome()) {
+		c->setWelcome(true);
+		response = welcome(p);
+	}
+
+	return response;
+}
+
+void Server::broadcastMessage(std::string message) {
+	std::map<int, Client>::iterator it = clients.begin();
+
+	for (; it != clients.end(); it++) {
+		(it->second).setSendData(message);
+	}
+}
+
+void Server::disconnectHandling() {
+	std::map<int, Client>::iterator it = clients.begin();
+
+	for (; it != clients.end(); it++) {
+		if ((it->second).getToDisconnect()) {
+			ejectClient(it->first, QUITED);
+		}
+	}
+}
+
+void Server::unexpectedDisconnectHandling(pollfd p) {
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
+		ss << ":" << c->getNickname();
+		ss << "!" << c->getUsername();
+		ss << "@" << c->getHostname();
+		ss << " QUIT: Client exited unexpectedly";
+		ss << "\r\n";
+
+		broadcastMessage(ss.str());
+	}
+	c->setToDisconnect(true);
 }

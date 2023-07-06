@@ -29,6 +29,7 @@ class Client {
 	void setRegistration(int flag);
 	void setOp(bool value);
 	void setKnowPassword(bool value);
+	void setToDisconnect(bool value);
 	void setWelcome(bool value);
 	void resetAllData();
 	void resetReadData();
@@ -39,6 +40,7 @@ class Client {
 	bool		getWelcome() const;
 	bool		getKnowPassword() const;
 	bool		getOp() const;
+	bool		getToDisconnect() const;
 	std::string getNickname() const;
 	std::string getUsername() const;
 	std::string getHostname() const;
@@ -53,6 +55,7 @@ class Client {
 	bool		welcome;	   // If the welcome message was sent
 	bool		knowPassword;  // If the client knows the server password
 	bool		op;			   // If the client is a Server Operator
+	bool		toDisconnect;
 	std::string nickname;
 	std::string username;
 	std::string hostname;

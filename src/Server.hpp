@@ -22,8 +22,6 @@
 #define MAX_CLIENTS 3
 
 class Server {
-	typedef std::vector<std::string> Tokens;
-
 	public:
 	Server(void);
 	Server(std::string const &password, int const &port);
@@ -39,7 +37,10 @@ class Server {
 	void	sendToClient(pollfd p);
 	void	ejectClient(int clientFd, int reason);
 	void	ejectAllClients();
+	void	broadcastMessage(std::string message);
 	pollfd &getAvailablePollFd();
+	void	disconnectHandling();
+	void	unexpectedDisconnectHandling(pollfd p);
 
 	std::string			  creationDatetime;
 	std::string			  password;
@@ -69,6 +70,7 @@ class Server {
 	std::string nicknameinuse(pollfd p, std::string nickname);
 	std::string youreoper(pollfd p);
 	std::string nooperhost(pollfd p);
+	std::string unknowncommand(pollfd p, std::string command);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

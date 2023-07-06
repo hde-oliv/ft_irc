@@ -1,8 +1,7 @@
 #include "Server.hpp"
 
 std::string Server::pass(pollfd p, Command &t) {
-	Tokens::iterator it;
-	Client			*c = &clients[p.fd];
+	Client *c = &clients[p.fd];
 
 	if (t.args.size() == 0) {
 		return needmoreparams(p, "PASS");  // ERR_NEEDMOREPARAMS 461
@@ -20,8 +19,7 @@ std::string Server::pass(pollfd p, Command &t) {
 }
 
 std::string Server::user(pollfd p, Command &t) {
-	Tokens::iterator it;
-	Client			*c = &clients[p.fd];
+	Client *c = &clients[p.fd];
 
 	if (t.args.size() < 4) {
 		return needmoreparams(p, "USER");  // ERR_NEEDMOREPARAMS 461
@@ -40,8 +38,7 @@ std::string Server::user(pollfd p, Command &t) {
 }
 
 std::string Server::nick(pollfd p, Command &t) {
-	Tokens::iterator it;
-	Client			*c = &clients[p.fd];
+	Client *c = &clients[p.fd];
 
 	if (t.args.size() == 0) {
 		return nonicknamegiven(p);	// ERR_NONICKNAMEGIVEN 431
@@ -58,8 +55,7 @@ std::string Server::nick(pollfd p, Command &t) {
 }
 
 std::string Server::oper(pollfd p, Command &t) {
-	Tokens::iterator it;
-	Client			*c = &clients[p.fd];
+	Client *c = &clients[p.fd];
 
 	if (t.args.size() < 2) {
 		return needmoreparams(p, t.cmd);
@@ -70,9 +66,30 @@ std::string Server::oper(pollfd p, Command &t) {
 	}
 
 	c->setOp(true);
+	c->resetReadData();
 
 	// TODO: Send MODE +o
 	return youreoper(p);
+}
+
+std::string Server::quit(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	// :John!john123@irc.example.com QUIT :Client exited unexpectedly
+
+	ss << ":" << c->getNickname();
+	if (t.args.size()) {
+		ss << " QUIT " << t.args[1];
+	} else {
+		ss << " QUIT :Gone to have lunch";
+	}
+	ss << "\r\n";
+
+	broadcastMessage(ss.str());
+	c->setToDisconnect(true);
+
+	return ""
 }
 
 // Utils

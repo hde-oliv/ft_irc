@@ -13,6 +13,7 @@ int			Client::getFd() const { return fd; }
 int			Client::getRegistration() const { return registration; }
 bool		Client::getWelcome() const { return welcome; }
 bool		Client::getKnowPassword() const { return knowPassword; }
+bool		Client::getToDisconnect() const { return toDisconnect; }
 std::string Client::getNickname() const { return nickname; }
 std::string Client::getUsername() const { return username; }
 std::string Client::getHostname() const { return hostname; }
@@ -30,8 +31,9 @@ void Client::setUsername(std::string name) { username = name; }
 void Client::setHostname(std::string name) { hostname = name; }
 void Client::setRealname(std::string name) { realname = name; }
 void Client::setServername(std::string name) { servername = name; }
-void Client::setSendData(std::string data) { sendData = data; }
+void Client::setSendData(std::string data) { sendData += data; }
 void Client::setReadData(std::string data) { readData += data; }
+void Client::setToDisconnect(bool value) { toDisconnect = value; }
 
 void Client::setNickname(std::string name) {
 	if (name.length() > 9) {
