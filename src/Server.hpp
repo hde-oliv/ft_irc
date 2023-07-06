@@ -37,7 +37,7 @@ class Server {
 	void	sendToClient(pollfd p);
 	void	ejectClient(int clientFd, int reason);
 	void	ejectAllClients();
-	void	broadcastMessage(std::string message);
+	void	broadcastMessage(pollfd sender, std::string message);
 	pollfd &getAvailablePollFd();
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);

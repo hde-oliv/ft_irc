@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 #include "Client.hpp"
 #include "Utils.hpp"
@@ -58,16 +59,7 @@ void Server::setupSocket() {
 		panic("Server::listen", "Failed", P_EXIT);
 	}
 }
-void Server::ejectDisconnected() {
-	for (std::map<int, Client>::reverse_iterator it = clients.rbegin();
-		 it != clients.rend(); it--) {
-		if (!(*it).second.connected) {
-			std::cout << "Should have disconnected someone" << std::endl;
-			ejectClient((*it).second.getFd(), QUITED);
-			break;
-		}
-	}
-}
+
 void Server::startServer() {
 	setupSocket();
 	int		r;
@@ -86,7 +78,7 @@ void Server::startServer() {
 		if (r >= 0) {
 			serverEventHandling();
 			clientEventHandling();
-			ejectDisconnected();
+			disconnectHandling();
 		}
 	}
 	close(server_fd);
@@ -165,7 +157,7 @@ void Server::recvLoop(pollfd p) {
 		std::memset(buffer, 0, BUFFER_SIZE);
 		bytesRead = recv(p.fd, buffer, BUFFER_SIZE, 0);
 		if (bytesRead > 0) {
-			c->inBuffer.append(buffer);
+			c->getInBuffer().append(buffer);
 			if (bytesRead < BUFFER_SIZE) {
 				keepReading = false;
 			}
@@ -173,11 +165,11 @@ void Server::recvLoop(pollfd p) {
 			keepReading = false;
 		}
 	}
-	while (c->inBuffer.find("\r\n") != std::string::npos) {
-		pos = c->inBuffer.find("\r\n");
+	while (c->getInBuffer().find("\r\n") != std::string::npos) {
+		pos = c->getInBuffer().find("\r\n");
 		if (pos > 0) {
-			c->cmdVec.push_back(c->inBuffer.substr(0, pos + 2));
-			c->inBuffer.erase(0, pos + 2);
+			c->getCmdVec().push_back(c->getInBuffer().substr(0, pos + 2));
+			c->getInBuffer().erase(0, pos + 2);
 		}
 	}
 }
@@ -187,30 +179,24 @@ void Server::readFromClient(pollfd p) {
 
 	recvLoop(p);
 
-	for (std::vector<std::string>::iterator it = c->cmdVec.begin();
-		 it < c->cmdVec.end(); it++) {
+	std::vector<std::string>		  &cmdVec = c->getCmdVec();
+	std::vector<std::string>::iterator it	  = cmdVec.begin();
+
+	for (; it < cmdVec.end(); it++) {
 		std::cout << "Client " << p.fd << " sent: ";
 		std::cout << RED << (*it) << RESET;
 		std::string response = executeClientMessage(p, (*it));
 		if (response == "KICK CLIENT") {
-			c->connected = false;
-			// ejectClient(p.fd, KICKED);
+			unexpectedDisconnectHandling(p);
 		}
 		c->setSendData(response);
 	}
-	c->cmdVec.clear();
+	cmdVec.clear();
 }
 
 void Server::sendToClient(pollfd p) {
 	Client *c = &clients[p.fd];
 	int		r;
-
-	// send might send the message partially, needs handling other than OK and
-	// fail (controll how manyu bytes were actually sent).
-	// it would be best the erase characters thar were correctly sent instead
-	// of erasing the entire string
-	//
-	// NOTE: Check if the changes here and on resetSendData fix that ^
 
 	if (c->getSendData().size()) {
 		r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
@@ -255,16 +241,6 @@ void Server::ejectClient(int clientFd, int reason) {
 // Command section
 
 std::string Server::executeClientMessage(pollfd p, std::string msg) {
-	std::vector<std::string> cmdList{
-		"NICK",		"PASS",	  "USER",	"QUIT",	   "OPER",	 "JOIN",  "PING",
-		"PART",		"MODE",	  "NAMES",	"LIST",	   "INVITE", "KICK",  "VERSION",
-		"STATS",	"LINKS",  "TIME",	"CONNECT", "TRACE",	 "ADMIN", "INFO",
-		"PRIVMSG",	"NOTICE", "WHO",	"WHOIS",   "WHOWAS", "KILL",  "PONG",
-		"ERROR",	"AWAY",	  "REHASH", "RESTART", "SUMMON", "USERS", "WALLOPS",
-		"USERHOST", "ISON",	  "SQUIT",	"SERVER"
-	};
-	std::vector<std::string>::iterator it;
-
 	Client	   *c  = &clients[p.fd];
 	Command		cm = stringToCommand(msg);
 	std::string response;
@@ -273,26 +249,14 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	std::cout << BLUE << cm.cmd << RESET << std::endl;
 	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
-	it = find(cmdList.begin(), cmdList.end(), cm.cmd);
-
-	ssize_t index;
-
-	if (it != cmdList.end()) {
-		index = it - cmdList.begin();
+	if (cm.cmd == "NICK") {
+		response = nick(p, cm);
+	} else if (cm.cmd == "PASS") {
+		response = pass(p, cm);
+	} else if (cm.cmd == "USER") {
+		response = user(p, cm);
 	} else {
-		index = -1;
-	}
-
-	switch (index) {
-		case 0:
-			response = nick(p, cm);
-		case 1:
-			response = pass(p, cm);
-		case 2:
-			response = user(p, cm);
-		case -1:
-		default:
-			response = unknowncommand(p, cm.cmd);
+		response = unknowncommand(p, cm.cmd);
 	}
 
 	if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
@@ -304,20 +268,24 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	return response;
 }
 
-void Server::broadcastMessage(std::string message) {
+void Server::broadcastMessage(pollfd sender, std::string message) {
 	std::map<int, Client>::iterator it = clients.begin();
 
 	for (; it != clients.end(); it++) {
-		(it->second).setSendData(message);
+		if ((it->first) != sender.fd) {
+			(it->second).setSendData(message);
+		}
 	}
 }
 
 void Server::disconnectHandling() {
-	std::map<int, Client>::iterator it = clients.begin();
+	std::map<int, Client>::reverse_iterator it = clients.rbegin();
 
-	for (; it != clients.end(); it++) {
+	for (; it != clients.rend(); it--) {
 		if ((it->second).getToDisconnect()) {
+			std::cout << "Should have disconnected someone." << std::endl;
 			ejectClient(it->first, QUITED);
+			break;
 		}
 	}
 }
@@ -333,7 +301,7 @@ void Server::unexpectedDisconnectHandling(pollfd p) {
 		ss << " QUIT: Client exited unexpectedly";
 		ss << "\r\n";
 
-		broadcastMessage(ss.str());
+		broadcastMessage(p, ss.str());
 	}
 	c->setToDisconnect(true);
 }

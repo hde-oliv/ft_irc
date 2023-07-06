@@ -86,10 +86,10 @@ std::string Server::quit(pollfd p, Command &t) {
 	}
 	ss << "\r\n";
 
-	broadcastMessage(ss.str());
+	broadcastMessage(p, ss.str());
 	c->setToDisconnect(true);
 
-	return ""
+	return "";
 }
 
 // Utils

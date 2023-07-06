@@ -53,7 +53,7 @@ class Client {
 	std::string getSendData() const;
 	std::string getInBuffer() const;
 
-	std::vector<std::string> getCmdVec() const;
+	std::vector<std::string>& getCmdVec();
 
 	private:
 	int			fd;

@@ -24,7 +24,7 @@ std::string Client::getServername() const { return servername; }
 std::string Client::getRealname() const { return realname; }
 std::string Client::getInBuffer() const { return inBuffer; }
 
-std::vector<std::string> Client::getCmdVec() const { return cmdVec; }
+std::vector<std::string> &Client::getCmdVec() { return cmdVec; }
 
 void Client::setOp(bool value) { op = value; }
 void Client::setWelcome(bool value) { welcome = value; }
