@@ -143,13 +143,10 @@ void Server::newClientHandling() {
 	}
 }
 
-<<<<<<< HEAD
-=======
 // This functions takes in a pollfd p, finds the Client in Server::clients that
 // is associated with p, than loads the Client->cmdVec with strings containg the
 // raw commands received by the server. cmvVec acts like a quee of messages
 // received and ready to be processed
->>>>>>> 24c90cf (first commit)
 void Server::recvLoop(pollfd p) {
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
