@@ -15,6 +15,7 @@ int			Client::getRegistration() const { return registration; }
 bool		Client::getWelcome() const { return welcome; }
 bool		Client::getKnowPassword() const { return knowPassword; }
 bool		Client::getToDisconnect() const { return toDisconnect; }
+bool		Client::getOp() const { return op; }
 std::string Client::getNickname() const { return nickname; }
 std::string Client::getUsername() const { return username; }
 std::string Client::getHostname() const { return hostname; }

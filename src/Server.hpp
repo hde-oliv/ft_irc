@@ -60,6 +60,9 @@ class Server {
 	void oper(pollfd p, Command &t);
 	void ping(pollfd p, Command &t);
 	void join(pollfd p, Command &t);
+	void who(pollfd p, Command &t);
+	void whowas(pollfd p, Command &t);
+	void whois(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
@@ -78,6 +81,8 @@ class Server {
 	std::string topic(pollfd p, Channel *ch);
 	std::string notopic(pollfd p, Channel *ch);
 	std::string namreply(pollfd p, Channel *ch);
+	std::string whoreply(pollfd p, Channel *ch);
+	std::string nosuchserver(pollfd p, std::string name);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

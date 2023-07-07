@@ -268,8 +268,13 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 		quit(p, cm);
 	} else if (cm.cmd == "PING") {
 		ping(p, cm);
-	}
-	else {
+	} else if (cm.cmd == "WHO") {
+		who(p, cm);
+	} else if (cm.cmd == "WHOIS") {
+		whois(p, cm);
+	} else if (cm.cmd == "WHOWAS") {
+		whowas(p, cm);
+	} else {
 		c->setSendData(unknowncommand(p, cm.cmd));
 	}
 
@@ -304,7 +309,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {

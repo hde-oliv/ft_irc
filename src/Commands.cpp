@@ -1,3 +1,5 @@
+#include <sys/poll.h>
+
 #include <sstream>
 
 #include "Channel.hpp"
@@ -30,7 +32,7 @@ void Server::user(pollfd p, Command &t) {
 	c->setUsername(t.args[0]);
 	c->setHostname(t.args[1]);
 	c->setServername(t.args[2]);
-	c->setRealname(t.args[3]);
+	c->setRealname(t.args[3].substr(1));
 	c->setRegistration(USER_FLAG);
 }
 
@@ -117,6 +119,39 @@ void Server::join(pollfd p, Command &t) {
 	}
 
 	c->setSendData(namreply(p, ch));
+}
+
+void Server::who(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	// NOTE: Not defined in RFC
+	if (t.args.size() < 1) {
+		c->setSendData(needmoreparams(p, "WHO"));
+	}
+
+	std::map<std::string, Channel>::iterator it;
+
+	for (it = channels.begin(); it != channels.end(); it++) {
+		if (it->first == toIrcUpperCase(t.args[0])) {
+			c->setSendData(whoreply(p, &(it->second)));
+			return;
+		}
+	}
+
+	// TODO: Check later what other servers respond when the Channel parameter
+	// does not exist
+	c->setSendData(nosuchserver(p, t.args[0]));
+}
+
+void Server::whois(pollfd p, Command &t) {
+	(void)p;
+	(void)t;
+}
+
+void Server::whowas(pollfd p, Command &t) {
+	(void)p;
+	(void)t;
 }
 
 void Server::quit(pollfd p, Command &t) {
