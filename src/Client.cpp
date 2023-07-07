@@ -22,6 +22,14 @@ std::string Client::getReadData() const { return readData; }
 std::string Client::getSendData() const { return sendData; }
 std::string Client::getServername() const { return servername; }
 std::string Client::getRealname() const { return realname; }
+std::string Client::getClientPrefix() {
+	std::stringstream ss;
+
+	ss << ":" << getNickname();
+	ss << "!" << getUsername();
+	ss << "@" << getHostname();
+	return (ss.str());
+};
 
 void Client::setOp(bool value) { op = value; }
 void Client::setWelcome(bool value) { welcome = value; }

@@ -12,7 +12,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "Client.hpp"
 
 #define P_CONTINUE 0
 #define P_EXIT 1
@@ -42,6 +45,9 @@ std::string toIrcUpperCase(std::string s);
 void		trimStart(std::string &str);
 void		trimEnd(std::string &str);
 void		trimAll(std::string &str);
-#endif
 
 std::string toValidChannelName(std::string rawName);
+
+std::vector<std::string> splitWithToken(std::string source, char delim);
+
+#endif

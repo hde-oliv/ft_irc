@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,8 @@ class Client {
 	std::string getRealname() const;
 	std::string getReadData() const;
 	std::string getSendData() const;
+
+	std::string getClientPrefix();
 
 	private:
 	int			fd;

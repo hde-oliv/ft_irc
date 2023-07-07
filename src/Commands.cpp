@@ -1,7 +1,10 @@
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #include "Channel.hpp"
 #include "Server.hpp"
+#include "Utils.hpp"
 
 void Server::pass(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
@@ -66,61 +69,106 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
+
+	std::vector<std::pair<std::string, std::string> > chanPsw;
 
 	// TODO: Check later for ERR_BADCHANMASK
 
-	if (t.args.size() < 1) {
-		c->setSendData(needmoreparams(p, "JOIN"));
-	} else if (!validChannelName(t.args[0])) {
-		c->setSendData(nosuchchannel(p, t.args[0]));
+	if (t.args.size() < 1) return (c->setSendData(needmoreparams(p, "JOIN")));
+
+	// if size == 1, only channels
+	if (t.args.size() == 1) {
+		std::vector<std::string> chanNames = splitWithToken(t.args[0], ',');
+		std::vector<std::string>::iterator it_name = chanNames.begin();
+		while (it_name != chanNames.end()) {
+			std::stringstream reponseStream;
+			if (!validChannelName(*it_name))
+				return (c->setSendData(nosuchchannel(p, *it_name)));
+			Channel *ch = &channels[toIrcUpperCase(*it_name)];
+			if (ch->getName() == "") {
+				ch->setName(*it_name);
+				// user creating channer is its owner!
+			}
+			reponseStream << c->getClientPrefix();
+			reponseStream << " JOIN :";
+			reponseStream << *it_name;
+			reponseStream << "\r\n";
+
+			ch->addClient(c);
+			ch->broadcastToClients(reponseStream.str());
+			if (ch->getTopic() != "") {
+				c->setSendData(topic(p, ch));
+			} else {
+				c->setSendData(notopic(p, ch));
+			}
+			c->setSendData(namreply(p, ch));
+			it_name++;
+		}
+		return (void);
 	}
+	// if size == 2, channels and names
+	if (t.args.size() == 2) {
+		std::vector<std::string> chanNames = splitWithToken(t.args[0], ',');
+		std::vector<std::string> psws	   = splitWithToken(t.args[0], ',');
+		if (chanNames.size() != psws.size())
+			return (c->setSendData(needmoreparams(p, "JOIN")));
 
-	// If does not exist, it will be created
-	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+		std::vector<std::string>::iterator it_name = chanNames.begin();
+		while (it_name != chanNames.end()) {
+			std::stringstream reponseStream;
+			if (!validChannelName(*it_name))
+				return (c->setSendData(nosuchchannel(p, *it_name)));
+			Channel *ch = &channels[toIrcUpperCase(*it_name)];
+			if (ch->getName() == "") {
+				ch->setName(*it_name);
+				// user creating channer is its owner!
+			}
+			reponseStream << c->getClientPrefix();
+			reponseStream << " JOIN :";
+			reponseStream << *it_name;
+			reponseStream << "\r\n";
 
-	// Channel setup
-	if (ch->getName() == "") {
-		ch->setName(t.args[0]);
-		// Check if JOIN has password for the channel
+			ch->addClient(c);
+			ch->broadcastToClients(reponseStream.str());
+			if (ch->getTopic() != "") {
+				c->setSendData(topic(p, ch));
+			} else {
+				c->setSendData(notopic(p, ch));
+			}
+			c->setSendData(namreply(p, ch));
+			it_name++;
+		}
+		return (void);
 	}
-
-	// else if (ch->isBanned(p)) {
-	// 	return bannedfromchan(p);
-	// } else if (!ch->wasInvited(p)) {
-	// 	return inviteonlychan(p);
-	// } else if (t.args.size() > 1 && ch->password != t.args[1]) {
-	// 	return badchannelkey(p);
-	// } else if (ch->isFull()) {
-	// 	return channelisfull(p);
-	// } else if (c->getChannels().size() >= MAX_CHANNELS) {
-	// 	return toomanychannels(p);
-	// }
-
-	ss << ":" << c->getNickname();
-	ss << "!" << c->getUsername();
-	ss << "@" << c->getHostname();
-	ss << " JOIN :";
-	ss << t.args[0];
-	ss << "\r\n";
-
-	ch->addClient(c);
-	ch->broadcastToClients(ss.str());
-
-	// TODO: Loop for join multiple channels in one command
-
-	if (ch->getTopic() != "") {
-		c->setSendData(topic(p, ch));
-	} else {
-		c->setSendData(notopic(p, ch));
+	return (c->setSendData(nosuchchannel(p, t.args[0])));
+	/*
+	ERR_BANNEDFROMCHAN
+	ERR_BADCHANNELKEY
+	ERR_BADCHANMASK
+	ERR_TOOMANYCHANNELS
+	ERR_NEEDMOREPARAMS
+	ERR_INVITEONLYCHAN
+	ERR_CHANNELISFULL
+	ERR_NOSUCHCHANNEL
+	RPL_TOPIC
+	else if (ch->isBanned(p)) {
+		return bannedfromchan(p);
+	} else if (!ch->wasInvited(p)) {
+		return inviteonlychan(p);
+	} else if (t.args.size() > 1 && ch->password != t.args[1]) {
+		return badchannelkey(p);
+	} else if (ch->isFull()) {
+		return channelisfull(p);
+	} else if (c->getChannels().size() >= MAX_CHANNELS) {
+		return toomanychannels(p);
 	}
-
-	c->setSendData(namreply(p, ch));
+	*/
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -137,7 +185,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";

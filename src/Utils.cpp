@@ -107,3 +107,16 @@ std::string toIrcUpperCase(std::string s) {
 
 	return s;
 }
+std::vector<std::string> splitWithToken(std::string source, char delim) {
+	std::vector<std::string> subStrings;
+
+	std::size_t start = 0;
+	std::size_t end	  = source.find(delim);
+	while (end != std::string::npos) {
+		subStrings.push_back(source.substr(start, end - start));
+		start = end + 1;
+		end	  = source.find(delim, start);
+	}
+	subStrings.push_back(source.substr(start));
+	return (subStrings);
+}
