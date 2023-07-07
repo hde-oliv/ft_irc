@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+
 void trimAll(std::string& str) {
 	std::size_t start = 0;
 	std::size_t end	  = str.length();
@@ -12,6 +13,7 @@ void trimAll(std::string& str) {
 	}
 	str = str.substr(start, end - start);
 }
+
 void trimStart(std::string& str) {
 	std::size_t start = 0;
 	std::size_t end	  = str.length();
@@ -21,6 +23,7 @@ void trimStart(std::string& str) {
 	}
 	str = str.substr(start);
 }
+
 void trimEnd(std::string& str) {
 	std::size_t size = str.length();
 	std::size_t cut	 = 0;
@@ -30,6 +33,7 @@ void trimEnd(std::string& str) {
 	}
 	str = str.substr(0, size - cut);
 }
+
 Command messageToCommand(std::string source) {
 	Command c;
 
@@ -67,6 +71,7 @@ Command messageToCommand(std::string source) {
 	}
 	return c;
 }
+
 void panic(std::string caller, std::string msg, int mode) {
 	std::cerr << RED << "Exception on " << caller << RESET << ": " << msg
 			  << std::endl;
@@ -79,6 +84,7 @@ void panic(std::string caller, std::string msg, int mode) {
 		throw std::exception();
 	}
 }
+
 std::string getDatetime() {
 	std::time_t currentTime = std::time(NULL);
 	std::tm*	localTime	= std::localtime(&currentTime);
