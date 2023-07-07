@@ -91,8 +91,6 @@ std::string Server::welcome(pollfd p) {
 	ss << " localhost 0.1 iowstRb- biklmnopstvrRcCNuMTD";
 	ss << "\r\n";
 
-	ss << motd(p);
-
 	return ss.str();
 }
 

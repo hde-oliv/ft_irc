@@ -143,9 +143,6 @@ void Server::newClientHandling() {
 	}
 }
 
-// NOTE: I think that when running this will produce a lot of vectors of size 1
-// And in the current state of readFromClient it does not seem to break further
-// development of the other commands and stuff.
 void Server::recvLoop(pollfd p) {
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
@@ -183,13 +180,10 @@ void Server::readFromClient(pollfd p) {
 	std::vector<std::string>::iterator it = c->cmdVec.begin();
 
 	for (; it < c->cmdVec.end(); it++) {
+		// DEBUG
 		std::cout << "Client " << p.fd << " sent: ";
 		std::cout << RED << (*it) << RESET;
-		std::string response = executeClientMessage(p, (*it));
-		if (response == "KICK CLIENT") {
-			unexpectedDisconnectHandling(p);
-		}
-		c->setSendData(response);
+		executeClientMessage(p, (*it));
 	}
 	c->cmdVec.clear();
 }
@@ -201,6 +195,7 @@ void Server::sendToClient(pollfd p) {
 	if (c->getSendData().size()) {
 		r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
 
+		// DEBUG
 		std::cout << CYAN << c->getSendData() << RESET;
 
 		if (r == -1) {
@@ -241,42 +236,40 @@ void Server::ejectClient(int clientFd, int reason) {
 	}
 }
 
-// Command section
-
-std::string Server::executeClientMessage(pollfd p, std::string msg) {
+void Server::executeClientMessage(pollfd p, std::string msg) {
 	Client	   *c  = &clients[p.fd];
 	Command		cm = stringToCommand(msg);
 	std::string response;
 
+	// DEBUG
 	std::cout << YELLOW << msg << RESET;
 	std::cout << BLUE << cm.cmd << RESET << std::endl;
 	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
 	if (cm.cmd == "NICK") {
-		response = nick(p, cm);
+		nick(p, cm);
 	} else if (cm.cmd == "PASS") {
-		response = pass(p, cm);
+		pass(p, cm);
 	} else if (cm.cmd == "USER") {
-		response = user(p, cm);
+		user(p, cm);
 	} else if (cm.cmd == "OPER") {
-		response = oper(p, cm);
+		oper(p, cm);
 	} else if (cm.cmd == "JOIN") {
-		response = join(p, cm);
+		join(p, cm);
 	} else if (cm.cmd == "QUIT") {
-		response = quit(p, cm);
+		quit(p, cm);
 	} else if (cm.cmd == "PING") {
-		response = ping(p, cm);
+		ping(p, cm);
 	} else {
-		response = unknowncommand(p, cm.cmd);
+		c->setSendData(unknowncommand(p, cm.cmd));
 	}
 
 	if (c->getRegistration() == (PASS_FLAG | USER_FLAG | NICK_FLAG) &&
 		!c->getWelcome()) {
 		c->setWelcome(true);
-		response = welcome(p);
+		c->setSendData(welcome(p));
+		c->setSendData(motd(p));
 	}
-
-	return response;
 }
 
 void Server::broadcastMessage(pollfd sender, std::string message) {

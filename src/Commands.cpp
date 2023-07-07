@@ -3,31 +3,28 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-std::string Server::pass(pollfd p, Command &t) {
+void Server::pass(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
 	if (t.args.size() == 0) {
-		return needmoreparams(p, "PASS");  // ERR_NEEDMOREPARAMS 461
+		c->setSendData(needmoreparams(p, "PASS"));	// ERR_NEEDMOREPARAMS 461
 	} else if (c->getRegistration() & PASS_FLAG) {
-		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
+		c->setSendData(alreadyregistered(p));  // ERR_ALREADYREGISTRED 462
 	} else if (t.args[0].substr(1) != password) {
-		return passwdmismatch(p);  // ERR_PASSWDMISMATCH 464
+		c->setSendData(passwdmismatch(p));	// ERR_PASSWDMISMATCH 464
 	}
 
 	c->setKnowPassword(true);
 	c->setRegistration(PASS_FLAG);
-	c->resetReadData();
-
-	return "";
 }
 
-std::string Server::user(pollfd p, Command &t) {
+void Server::user(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
 	if (t.args.size() < 4) {
-		return needmoreparams(p, "USER");  // ERR_NEEDMOREPARAMS 461
+		c->setSendData(needmoreparams(p, "USER"));	// ERR_NEEDMOREPARAMS 461
 	} else if (c->getRegistration() & USER_FLAG) {
-		return alreadyregistered(p);  // ERR_ALREADYREGISTRED 462
+		c->setSendData(alreadyregistered(p));  // ERR_ALREADYREGISTRED 462
 	}
 
 	c->setUsername(t.args[0]);
@@ -35,55 +32,49 @@ std::string Server::user(pollfd p, Command &t) {
 	c->setServername(t.args[2]);
 	c->setRealname(t.args[3]);
 	c->setRegistration(USER_FLAG);
-	c->resetReadData();
-
-	return "";
 }
 
-std::string Server::nick(pollfd p, Command &t) {
+void Server::nick(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
 	if (t.args.size() == 0) {
-		return nonicknamegiven(p);	// ERR_NONICKNAMEGIVEN 431
+		c->setSendData(nonicknamegiven(p));	 // ERR_NONICKNAMEGIVEN 431
 	} else if (!validNickname(t.args[0])) {
-		return erroneusnickname(p, t.args[0]);	// ERR_ERRONEUSNICKNAME 432
+		c->setSendData(
+			erroneusnickname(p, t.args[0]));  // ERR_ERRONEUSNICKNAME 432
 	} else if (nicknameAlreadyExists(t.args[0])) {
-		return nicknameinuse(p, t.args[0]);	 // ERR_NICKNAMEINUSE 433
+		c->setSendData(nicknameinuse(p, t.args[0]));  // ERR_NICKNAMEINUSE 433
 	}
 	c->setNickname(t.args[0]);
 	c->setRegistration(NICK_FLAG);
-	c->resetReadData();
-
-	return "";
 }
 
-std::string Server::oper(pollfd p, Command &t) {
+void Server::oper(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
 	if (t.args.size() < 2) {
-		return needmoreparams(p, t.cmd);
+		c->setSendData(needmoreparams(p, t.cmd));
 	} else if (t.args[1] != OPER_PASS) {
-		return passwdmismatch(p);
+		c->setSendData(passwdmismatch(p));
 	} else if (t.args[0] != OPER_USER) {
-		return nooperhost(p);
+		c->setSendData(nooperhost(p));
 	}
 
 	c->setOp(true);
-	c->resetReadData();
-
+	c->setSendData(youreoper(p));
 	// TODO: Send MODE +o
-	return youreoper(p);
 }
-std::string Server::join(pollfd p, Command &t) {
+
+void Server::join(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check later for ERR_BADCHANMASK
 
 	if (t.args.size() < 1) {
-		return needmoreparams(p, "JOIN");
+		c->setSendData(needmoreparams(p, "JOIN"));
 	} else if (!validChannelName(t.args[0])) {
-		return nosuchchannel(p, t.args[0]);
+		c->setSendData(nosuchchannel(p, t.args[0]));
 	}
 
 	// If does not exist, it will be created
@@ -125,10 +116,10 @@ std::string Server::join(pollfd p, Command &t) {
 		c->setSendData(notopic(p, ch));
 	}
 
-	return namreply(p, ch);
+	c->setSendData(namreply(p, ch));
 }
 
-std::string Server::quit(pollfd p, Command &t) {
+void Server::quit(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
@@ -143,13 +134,11 @@ std::string Server::quit(pollfd p, Command &t) {
 
 	broadcastMessage(p, ss.str());
 	c->setToDisconnect(true);
-
-	return "";
 }
 
-std::string Server::ping(pollfd p, Command &t) {
+void Server::ping(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
-	(void)p;
 
 	ss << ":localhost PONG localhost";
 	if (t.args.size()) {
@@ -157,7 +146,7 @@ std::string Server::ping(pollfd p, Command &t) {
 	}
 	ss << "\r\n";
 
-	return ss.str();
+	c->setSendData(ss.str());
 }
 
 // Utils

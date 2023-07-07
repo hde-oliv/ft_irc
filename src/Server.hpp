@@ -52,15 +52,14 @@ class Server {
 	std::vector<pollfd>			   pollFds;
 	struct sockaddr_in			   address;
 
-	std::string executeClientMessage(pollfd p, std::string msg);
-	void		setupCommandMap();
-	std::string pass(pollfd p, Command &t);
-	std::string user(pollfd p, Command &t);
-	std::string nick(pollfd p, Command &t);
-	std::string quit(pollfd p, Command &t);
-	std::string oper(pollfd p, Command &t);
-	std::string ping(pollfd p, Command &t);
-	std::string join(pollfd p, Command &t);
+	void executeClientMessage(pollfd p, std::string msg);
+	void pass(pollfd p, Command &t);
+	void user(pollfd p, Command &t);
+	void nick(pollfd p, Command &t);
+	void quit(pollfd p, Command &t);
+	void oper(pollfd p, Command &t);
+	void ping(pollfd p, Command &t);
+	void join(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
