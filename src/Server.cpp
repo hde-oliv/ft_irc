@@ -265,7 +265,7 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 	} else if (cm.cmd == "QUIT") {
 		response = quit(p, cm);
 	} else if (cm.cmd == "PING") {
-		// response = ping(p, cm);
+		response = ping(p, cm);
 	} else {
 		response = unknowncommand(p, cm.cmd);
 	}

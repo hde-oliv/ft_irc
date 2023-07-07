@@ -127,12 +127,12 @@ std::string Server::join(pollfd p, Command &t) {
 
 	return namreply(p, ch);
 }
+
 std::string Server::quit(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
-	// :John!john123@irc.example.com QUIT :Client exited unexpectedly
-
+	// TODO: Check if this broadcast is only on the channel
 	ss << ":" << c->getNickname();
 	if (t.args.size()) {
 		ss << " QUIT " << t.args[0];
@@ -145,6 +145,19 @@ std::string Server::quit(pollfd p, Command &t) {
 	c->setToDisconnect(true);
 
 	return "";
+}
+
+std::string Server::ping(pollfd p, Command &t) {
+	std::stringstream ss;
+	(void)p;
+
+	ss << ":localhost PONG localhost";
+	if (t.args.size()) {
+		ss << " :" << t.args[0];
+	}
+	ss << "\r\n";
+
+	return ss.str();
 }
 
 // Utils
