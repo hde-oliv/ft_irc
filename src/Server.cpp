@@ -175,9 +175,11 @@ void Server::recvLoop(pollfd p) {
 		if (pos > 0) {
 			c->cmdVec.push_back(c->inBuffer.substr(0, pos));
 			c->inBuffer.erase(0, pos + 2);
-			std::string &last = c->cmdVec.back();
+			/*
 			last.erase(std::remove(last.begin(), last.end(), '\r'), last.end());
+			std::string &last = c->cmdVec.back();
 			last.erase(std::remove(last.begin(), last.end(), '\n'), last.end());
+			*/
 		}
 	}
 }
@@ -248,7 +250,7 @@ void Server::ejectClient(int clientFd, int reason) {
 
 void Server::executeClientMessage(pollfd p, std::string msg) {
 	Client	   *c  = &clients[p.fd];
-	Command		cm = stringToCommand(msg);
+	Command		cm = messageToCommand(msg);
 	std::string response;
 
 	// DEBUG

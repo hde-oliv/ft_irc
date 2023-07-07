@@ -37,9 +37,8 @@ void		panic(std::string caller, std::string msg, int mode);
 std::string getDatetime(void);
 void		replaceString(std::string &subject, std::string &search,
 						  std::string &replace);
-Command		stringToCommand(std::string source);
+Command		messageToCommand(std::string source);
 std::string toIrcUpperCase(std::string s);
-void		strip(std::string &str);
 void		trimStart(std::string &str);
 void		trimEnd(std::string &str);
 void		trimAll(std::string &str);

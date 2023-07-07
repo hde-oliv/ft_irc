@@ -3,11 +3,11 @@ void trimAll(std::string& str) {
 	std::size_t start = 0;
 	std::size_t end	  = str.length();
 
-	while (start < end && std::isspace(str[start])) {
+	while (start < end && str[start] == ' ') {
 		start++;
 	}
 
-	while (end > start && std::isspace(str[end - 1])) {
+	while (end > start && str[end - 1] == ' ') {
 		end--;
 	}
 	str = str.substr(start, end - start);
@@ -16,7 +16,7 @@ void trimStart(std::string& str) {
 	std::size_t start = 0;
 	std::size_t end	  = str.length();
 
-	while (start < end && std::isspace(str[start])) {
+	while (start < end && str[start] == ' ') {
 		start++;
 	}
 	str = str.substr(start);
@@ -30,7 +30,7 @@ void trimEnd(std::string& str) {
 	}
 	str = str.substr(0, size - cut);
 }
-Command stringToCommand(std::string source) {
+Command messageToCommand(std::string source) {
 	Command c;
 
 	std::string token;
@@ -38,39 +38,33 @@ Command stringToCommand(std::string source) {
 	if (source[0] == ':') {
 		std::istringstream sourceStream(source);
 		std::getline(sourceStream, c.prefix, ' ');
-		strip(c.prefix);
 		source = source.substr(source.find(c.prefix) + c.prefix.size());
 	}
-
-	strip(source);
+	trimStart(source);
 	std::istringstream sourceStream(source);
 	std::getline(sourceStream, c.cmd, ' ');
 	source = source.substr(source.find(c.cmd) + c.cmd.size());
-
-	// TODO: Find a better solution later
-	size_t colon = source.find(":");
-	if (colon != std::string::npos) {
-		std::string beforeColon = source.substr(0, colon);
-		std::string afterColon	= source.substr(colon);
+	trimStart(source);
+	size_t colonPos = source.find(':');
+	if (colonPos != std::string::npos) {
+		std::string beforeColon = source.substr(0, colonPos);
+		std::string afterColon	= source.substr(colonPos);
 
 		std::istringstream beforeColonSteam(beforeColon);
 
 		while (std::getline(beforeColonSteam, token, ' ')) {
-			strip(token);
+			trimAll(token);
 			if (token.size() != 0) c.args.push_back(token);
 		}
-
-		strip(afterColon);
 		c.args.push_back(afterColon);
 	} else {
 		std::istringstream sourceStream(source);
 
 		while (std::getline(sourceStream, token, ' ')) {
-			strip(token);
+			trimAll(token);
 			if (token.size() != 0) c.args.push_back(token);
 		}
 	}
-
 	return c;
 }
 void panic(std::string caller, std::string msg, int mode) {
@@ -85,7 +79,6 @@ void panic(std::string caller, std::string msg, int mode) {
 		throw std::exception();
 	}
 }
-
 std::string getDatetime() {
 	std::time_t currentTime = std::time(NULL);
 	std::tm*	localTime	= std::localtime(&currentTime);
@@ -113,22 +106,4 @@ std::string toIrcUpperCase(std::string s) {
 	replaceString(s, "|", "\\");
 
 	return s;
-}
-
-void strip(std::string& str) {
-	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-
-	std::size_t start = 0;
-	std::size_t end	  = str.length();
-
-	while (start < end && std::isspace(str[start])) {
-		start++;
-	}
-
-	while (end > start && std::isspace(str[end - 1])) {
-		end--;
-	}
-
-	str = str.substr(start, end - start);
 }
