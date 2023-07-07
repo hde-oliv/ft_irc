@@ -4,21 +4,32 @@
 
 #include "Utils.hpp"
 
-Channel::Channel() {}
+Channel::Channel() { host = "localhost"; }
 
 Channel::~Channel() {}
 
-Channel::Channel(std::string name, std::string topic, std::string host) {
-	setName(name);
-	setTopic(topic);
-	this->host = host;	// needs validation
-};
+std::string Channel::getName() const { return name; };
+std::string Channel::getTopic() const { return topic; }
 
-std::string Channel::getName() { return this->name; };
+std::vector<Client *> Channel::getClients() const { return clients; }
 
-void Channel::setName(std::string newName) {
-	this->name = toValidChannelName(newName);
-};
+void Channel::setName(std::string name) { this->name = name; }
+void Channel::setTopic(std::string topic) { this->topic = topic; };
 
-std::string Channel::getTopic() { return topic; };
-void		Channel::setTopic(std::string newTopic) { this->topic = newTopic; };
+void Channel::addClient(Client *c) { clients.push_back(c); }
+void Channel::addOperator(Client *c) { operators.push_back(c); }
+
+void Channel::removeClient(Client *c) {
+	(void)std::remove(clients.begin(), clients.end(), c);
+}
+
+void Channel::removeOperator(Client *c) {
+	(void)std::remove(operators.begin(), operators.end(), c);
+}
+
+void Channel::broadcastToClients(std::string message) {
+	std::vector<Client *>::iterator it = clients.begin();
+	for (; it != clients.end(); it++) {
+		(*it)->setSendData(message);
+	}
+}

@@ -200,6 +200,9 @@ void Server::sendToClient(pollfd p) {
 
 	if (c->getSendData().size()) {
 		r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
+
+		std::cout << CYAN << c->getSendData() << RESET;
+
 		if (r == -1) {
 			panic("Server::send", "Failed", P_CONTINUE);
 		} else if (r > 0) {
@@ -259,11 +262,10 @@ std::string Server::executeClientMessage(pollfd p, std::string msg) {
 		response = oper(p, cm);
 	} else if (cm.cmd == "JOIN") {
 		response = join(p, cm);
-		std::cout << response << std::endl;
 	} else if (cm.cmd == "QUIT") {
 		response = quit(p, cm);
 	} else if (cm.cmd == "PING") {
-		response = ping(p, cm);
+		// response = ping(p, cm);
 	} else {
 		response = unknowncommand(p, cm.cmd);
 	}
@@ -300,7 +302,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {

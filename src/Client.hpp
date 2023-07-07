@@ -14,6 +14,8 @@
 #define OPER_USER "foo"
 #define OPER_PASS "bar"
 
+class Channel;
+
 class Client {
 	public:
 	Client(void);
@@ -30,8 +32,6 @@ class Client {
 	void setUsername(std::string name);
 	void setRealname(std::string name);
 	void setNickname(std::string name);
-	// void setInBuffer(std::string buffer);
-	// void setCmdVec(std::vector<std::string> vector);
 	void setRegistration(int flag);
 	void setOp(bool value);
 	void setKnowPassword(bool value);
@@ -54,9 +54,6 @@ class Client {
 	std::string getRealname() const;
 	std::string getReadData() const;
 	std::string getSendData() const;
-	// std::string getInBuffer() const;
-
-	// std::vector<std::string>& getCmdVec();
 
 	private:
 	int			fd;
@@ -72,6 +69,8 @@ class Client {
 	std::string realname;
 	std::string readData;
 	std::string sendData;
+
+	std::vector<Channel*> channels;
 };
 
 // TODO: Consider this later

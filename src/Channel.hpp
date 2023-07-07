@@ -15,22 +15,33 @@
 class Channel {
 	public:
 	Channel(void);
-	Channel(std::string name, std::string topic, std::string host);
 	~Channel(void);
-	std::string getName();
-	void		setName(std::string newName);
-	std::string getTopic();
-	void		setTopic(std::string newTopic);
+
+	std::string getName() const;
+	std::string getTopic() const;
+
+	std::vector<Client *> getClients() const;
+
+	void setName(std::string name);
+	void setTopic(std::string topic);
+
+	void addClient(Client *c);
+	void removeClient(Client *c);
+
+	void addOperator(Client *c);
+	void removeOperator(Client *c);
+
+	void broadcastToClients(std::string message);
 
 	private:
-	std::string			name;
-	std::string			topic;
-	std::string			host;
-	std::string			password;
-	std::vector<Client> operators;
-	std::vector<Client> clients;
-	unsigned int		modes;
-	int					limit;
+	std::string			  name;
+	std::string			  topic;
+	std::string			  host;
+	std::string			  password;
+	std::vector<Client *> operators;
+	std::vector<Client *> clients;
+	unsigned int		  modes;
+	int					  limit;
 };
 
 #endif

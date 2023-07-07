@@ -43,14 +43,14 @@ class Server {
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
 
-	std::string			  creationDatetime;
-	std::string			  password;
-	int					  port;
-	int					  server_fd;
-	std::map<int, Client> clients;
-	std::vector<Channel>  channels;
-	std::vector<pollfd>	  pollFds;
-	struct sockaddr_in	  address;
+	std::string					   creationDatetime;
+	std::string					   password;
+	int							   port;
+	int							   server_fd;
+	std::map<int, Client>		   clients;
+	std::map<std::string, Channel> channels;
+	std::vector<pollfd>			   pollFds;
+	struct sockaddr_in			   address;
 
 	std::string executeClientMessage(pollfd p, std::string msg);
 	void		setupCommandMap();
@@ -75,9 +75,14 @@ class Server {
 	std::string youreoper(pollfd p);
 	std::string nooperhost(pollfd p);
 	std::string unknowncommand(pollfd p, std::string command);
+	std::string nosuchchannel(pollfd p, std::string name);
+	std::string topic(pollfd p, Channel *ch);
+	std::string notopic(pollfd p, Channel *ch);
+	std::string namreply(pollfd p, Channel *ch);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);
+	bool validChannelName(std::string name);
 };
 
 #endif

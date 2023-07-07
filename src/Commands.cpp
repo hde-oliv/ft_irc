@@ -1,3 +1,6 @@
+#include <sstream>
+
+#include "Channel.hpp"
 #include "Server.hpp"
 
 std::string Server::pass(pollfd p, Command &t) {
@@ -72,63 +75,60 @@ std::string Server::oper(pollfd p, Command &t) {
 	return youreoper(p);
 }
 std::string Server::join(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
-	(void)t;
-	Client	   *c	 = &clients[p.fd];
-	Channel	*chan = NULL;
-	std::string realName;
-	ss << ":localhost ";
-	try {
-		realName = toValidChannelName(t.args[0]);
-	} catch (std::exception &e) {
-		ss << "403 " << c->getNickname() << " " << realName
-		   << " :No such channel\r\n";
-		return ss.str();
+
+	// TODO: Check later for ERR_BADCHANMASK
+
+	if (t.args.size() < 1) {
+		return needmoreparams(p, "JOIN");
+	} else if (!validChannelName(t.args[0])) {
+		return nosuchchannel(p, t.args[0]);
 	}
 
-	std::vector<Channel>::iterator it = channels.begin();
-	while (it < channels.end()) {
-		if ((*it).getName() == t.args[0]) {
-			std::cout << "Join channel " << t.args[0] << std::endl;
-			chan = &(*it);
-		}
-		it++;
-	}
-	if (chan == NULL) {
-		channels.push_back(Channel(t.args[0], "", c->getHostname()));
-	}
-	chan = &channels.back();
+	// If does not exist, it will be created
+	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
 
-	if (chan->getTopic().length() > 0)
-		ss << "332 " << c->getNickname() << " " << realName << " :"
-		   << chan->getTopic() << "\r\n";
-	else
-		ss << "332 " << c->getNickname() << " " << realName
-		   << " :Simple topic\r\n";
-	// ss << "331 " << c->getNickname() << " " << realName
-	//    << " :no topic is set\r\n";
-	return ss.str();
-	/*
-PASS :1234
-USER hcduller * localhost :purple
-NICK henrique
-JOIN +teste 1234
-	403	ERR_NOSUCHCHANNEL	"<channel name> :No such channel"
-	461	ERR_NEEDMOREPARAMS	"<command> :Not enough parameters"
-	474	ERR_BANNEDFROMCHAN	"<channel> :Cannot join channel (+b)"
-	473	ERR_INVITEONLYCHAN	"<channel> :Cannot join channel (+i)"
-	475	ERR_BADCHANNELKEY	"<channel> :Cannot join channel (+k)"
-	471	ERR_CHANNELISFULL	"<channel> :Cannot join channel (+l)"
-	ERR_BADCHANMASK //no definition found in rfc
-	403	ERR_NOSUCHCHANNEL	"<channel name> :No such channel"
-	405	ERR_TOOMANYCHANNELS	"<channel name> :You have joined too many \
-								 channels"
-	331	RPL_NOTOPIC			"<channel> :No topic is set"
-	332	RPL_TOPIC			"<channel> :<topic>"
-	*/
+	// Channel setup
+	if (ch->getName() == "") {
+		ch->setName(t.args[0]);
+		// Check if JOIN has password for the channel
+	}
+
+	// else if (ch->isBanned(p)) {
+	// 	return bannedfromchan(p);
+	// } else if (!ch->wasInvited(p)) {
+	// 	return inviteonlychan(p);
+	// } else if (t.args.size() > 1 && ch->password != t.args[1]) {
+	// 	return badchannelkey(p);
+	// } else if (ch->isFull()) {
+	// 	return channelisfull(p);
+	// } else if (c->getChannels().size() >= MAX_CHANNELS) {
+	// 	return toomanychannels(p);
+	// }
+
+	ss << ":" << c->getNickname();
+	ss << "!" << c->getUsername();
+	ss << "@" << c->getHostname();
+	ss << " JOIN :";
+	ss << t.args[0];
+	ss << "\r\n";
+
+	ch->addClient(c);
+	ch->broadcastToClients(ss.str());
+
+	// TODO: Loop for join multiple channels in one command
+
+	if (ch->getTopic() != "") {
+		c->setSendData(topic(p, ch));
+	} else {
+		c->setSendData(notopic(p, ch));
+	}
+
+	return namreply(p, ch);
 }
 std::string Server::quit(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// :John!john123@irc.example.com QUIT :Client exited unexpectedly
@@ -174,3 +174,21 @@ bool Server::nicknameAlreadyExists(std::string nickname) {
 	}
 	return false;
 }
+
+bool Server::validChannelName(std::string name) {
+	if (name.length() < 1) return false;
+
+	std::string prefixes = "&#!+";
+
+	if (prefixes.find(name.at(0)) == std::string::npos) return false;
+	if (name.length() > 50) return false;
+
+	std::string insensitiveName = toIrcUpperCase(name);
+	std::string forbiddenChars	= " \a,:";
+
+	for (std::size_t i = 0; i < forbiddenChars.size(); i++) {
+		if (insensitiveName.find(forbiddenChars.at(i)) != std::string::npos)
+			return false;
+	}
+	return true;
+};

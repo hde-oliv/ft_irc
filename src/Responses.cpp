@@ -105,7 +105,15 @@ std::string Server::motd(pollfd p) {
 	ss << "\r\n";
 
 	ss << ":localhost 372 " << c->getNickname();
-	ss << " :- Welcome to the FT_IRC!";
+	ss << " :- Welcome to the "
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+		  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii FT_IRC!";
 	ss << "\r\n";
 
 	ss << ":localhost 376 " << c->getNickname();
@@ -144,6 +152,64 @@ std::string Server::unknowncommand(pollfd p, std::string command) {
 	ss << ":localhost 421 " << c->getNickname();
 	ss << " " << command;
 	ss << " :Unknown command";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::nosuchchannel(pollfd p, std::string name) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 403 " << c->getNickname();
+	ss << " " << name;
+	ss << " :No such channel";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::topic(pollfd p, Channel *ch) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 332 " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :" << ch->getTopic();
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::notopic(pollfd p, Channel *ch) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 331 " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :No topic is set";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::namreply(pollfd p, Channel *ch) {
+	std::stringstream	  ss;
+	Client				 *c	  = &clients[p.fd];
+	std::vector<Client *> cli = ch->getClients();
+
+	// TODO: Handle a lot of names
+
+	ss << ":localhost 353 " << c->getNickname();
+	ss << " = " << ch->getName();
+	ss << " :" << cli[0]->getNickname();
+	ss << "\r\n";
+
+	// TODO: Consider the RFC for 366 implementation later
+
+	ss << ":localhost 366 " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :End of NAMES list";
 	ss << "\r\n";
 
 	return ss.str();
