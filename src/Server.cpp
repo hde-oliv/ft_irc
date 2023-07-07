@@ -191,7 +191,7 @@ void Server::readFromClient(pollfd p) {
 	for (; it < c->cmdVec.end(); it++) {
 		// DEBUG
 		std::cout << "Client " << p.fd << " sent: ";
-		std::cout << RED << (*it) << RESET;
+		std::cout << RED << (*it) << RESET << std::endl;
 		executeClientMessage(p, (*it));
 	}
 	c->cmdVec.clear();
@@ -251,7 +251,6 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 	std::string response;
 
 	// DEBUG
-	std::cout << YELLOW << msg << RESET;
 	std::cout << BLUE << cm.cmd << RESET << std::endl;
 	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
@@ -269,6 +268,12 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 		quit(p, cm);
 	} else if (cm.cmd == "PING") {
 		ping(p, cm);
+	} else if (cm.cmd == "WHO") {
+		who(p, cm);
+	} else if (cm.cmd == "WHOIS") {
+		whois(p, cm);
+	} else if (cm.cmd == "WHOWAS") {
+		whowas(p, cm);
 	} else {
 		c->setSendData(unknowncommand(p, cm.cmd));
 	}
@@ -304,7 +309,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {

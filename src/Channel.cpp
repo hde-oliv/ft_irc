@@ -19,6 +19,10 @@ void Channel::setTopic(std::string topic) { this->topic = topic; };
 void Channel::addClient(Client *c) { clients.push_back(c); }
 void Channel::addOperator(Client *c) { operators.push_back(c); }
 
+bool Channel::isOperator(Client *c) {
+	return std::find(operators.begin(), operators.end(), c) != operators.end();
+}
+
 void Channel::removeClient(Client *c) {
 	(void)std::remove(clients.begin(), clients.end(), c);
 }

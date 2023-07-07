@@ -33,6 +33,8 @@ class Channel {
 
 	void broadcastToClients(std::string message);
 
+	bool isOperator(Client *c);
+
 	private:
 	std::string			  name;
 	std::string			  topic;

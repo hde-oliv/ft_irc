@@ -4,7 +4,7 @@
 
 std::string Server::needmoreparams(pollfd p, std::string command) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 461 " << c->getNickname();
 	ss << " " << command << " :Not enough parameters";
@@ -15,7 +15,7 @@ std::string Server::needmoreparams(pollfd p, std::string command) {
 
 std::string Server::alreadyregistered(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 462 " << c->getNickname();
 	ss << " :You may not reregister";
@@ -26,7 +26,7 @@ std::string Server::alreadyregistered(pollfd p) {
 
 std::string Server::passwdmismatch(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 464 " << c->getNickname();
 	ss << " :Password incorrect";
@@ -37,7 +37,7 @@ std::string Server::passwdmismatch(pollfd p) {
 
 std::string Server::nonicknamegiven(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 431 " << c->getNickname();
 	ss << " :No nickname given";
@@ -48,7 +48,7 @@ std::string Server::nonicknamegiven(pollfd p) {
 
 std::string Server::erroneusnickname(pollfd p, std::string nickname) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 432 " << c->getNickname();
 	ss << " " << nickname << " :Erroneus nickname";
@@ -59,7 +59,7 @@ std::string Server::erroneusnickname(pollfd p, std::string nickname) {
 
 std::string Server::nicknameinuse(pollfd p, std::string nickname) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 433 " << c->getNickname();
 	ss << " " << nickname << " :Nickname is already in use";
@@ -69,7 +69,7 @@ std::string Server::nicknameinuse(pollfd p, std::string nickname) {
 }
 std::string Server::welcome(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	// RPL_WELCOME 001
 	ss << ":localhost 001 " << c->getNickname();
@@ -96,7 +96,7 @@ std::string Server::welcome(pollfd p) {
 
 std::string Server::motd(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 375 " << c->getNickname();
 	ss << " :- localhost Message of the day -";
@@ -115,7 +115,7 @@ std::string Server::motd(pollfd p) {
 
 std::string Server::nooperhost(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 491 " << c->getNickname();
 	ss << " :No O-lines for your host";
@@ -126,7 +126,7 @@ std::string Server::nooperhost(pollfd p) {
 
 std::string Server::youreoper(pollfd p) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 381 " << c->getNickname();
 	ss << " :You are now an IRC operator";
@@ -137,7 +137,7 @@ std::string Server::youreoper(pollfd p) {
 
 std::string Server::unknowncommand(pollfd p, std::string command) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 421 " << c->getNickname();
 	ss << " " << command;
@@ -149,7 +149,7 @@ std::string Server::unknowncommand(pollfd p, std::string command) {
 
 std::string Server::nosuchchannel(pollfd p, std::string name) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 403 " << c->getNickname();
 	ss << " " << name;
@@ -161,7 +161,7 @@ std::string Server::nosuchchannel(pollfd p, std::string name) {
 
 std::string Server::topic(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 332 " << c->getNickname();
 	ss << " " << ch->getName();
@@ -173,7 +173,7 @@ std::string Server::topic(pollfd p, Channel *ch) {
 
 std::string Server::notopic(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 
 	ss << ":localhost 331 " << c->getNickname();
 	ss << " " << ch->getName();
@@ -185,7 +185,7 @@ std::string Server::notopic(pollfd p, Channel *ch) {
 
 std::string Server::namreply(pollfd p, Channel *ch) {
 	std::stringstream	  ss;
-	Client			   *c	  = &clients[p.fd];
+	Client				 *c	  = &clients[p.fd];
 	std::vector<Client *> cli = ch->getClients();
 
 	// TODO: Handle a lot of names
@@ -200,6 +200,60 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 	ss << ":localhost 366 " << c->getNickname();
 	ss << " " << ch->getName();
 	ss << " :End of NAMES list";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::whoreply(pollfd p, Channel *ch) {
+	std::stringstream				ss;
+	Client						   *c	= &clients[p.fd];
+	std::vector<Client *>			cli = ch->getClients();
+	std::vector<Client *>::iterator it	= cli.begin();
+
+	// NOTE: Who is the worse command to implement
+	// check later if it can be skipped
+
+	for (; it != cli.end(); it++) {
+		ss << ":localhost 352 " << c->getNickname();
+		ss << " " << ch->getName();
+		ss << " " << (*it)->getUsername();
+		ss << " " << (*it)->getHostname();
+		ss << " " << (*it)->getServername();
+		ss << " " << (*it)->getNickname();
+
+		if ((*it)->getOp()) {
+			ss << " G";
+		} else {
+			ss << " H";
+		}
+		if (ch->isOperator((*it))) {
+			ss << "@";
+		}
+		// TODO: Check for voiced
+
+		ss << " :0";
+		ss << " " << (*it)->getRealname();
+		ss << "\r\n";
+	}
+
+	ss << ":localhost 315";
+	ss << " " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :End of WHO list";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::nosuchserver(pollfd p, std::string name) {
+	std::stringstream ss;
+	Client			 *c = &clients[p.fd];
+
+	ss << ":localhost 402";
+	ss << " " << c->getNickname();
+	ss << " " << name;
+	ss << " :No such server";
 	ss << "\r\n";
 
 	return ss.str();
