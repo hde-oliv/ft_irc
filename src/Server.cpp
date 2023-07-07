@@ -143,6 +143,13 @@ void Server::newClientHandling() {
 	}
 }
 
+<<<<<<< HEAD
+=======
+// This functions takes in a pollfd p, finds the Client in Server::clients that
+// is associated with p, than loads the Client->cmdVec with strings containg the
+// raw commands received by the server. cmvVec acts like a quee of messages
+// received and ready to be processed
+>>>>>>> 24c90cf (first commit)
 void Server::recvLoop(pollfd p) {
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
@@ -166,8 +173,11 @@ void Server::recvLoop(pollfd p) {
 	while (c->inBuffer.find("\r\n") != std::string::npos) {
 		pos = c->inBuffer.find("\r\n");
 		if (pos > 0) {
-			c->cmdVec.push_back(c->inBuffer.substr(0, pos + 2));
+			c->cmdVec.push_back(c->inBuffer.substr(0, pos));
 			c->inBuffer.erase(0, pos + 2);
+			std::string &last = c->cmdVec.back();
+			last.erase(std::remove(last.begin(), last.end(), '\r'), last.end());
+			last.erase(std::remove(last.begin(), last.end(), '\n'), last.end());
 		}
 	}
 }
@@ -295,7 +305,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {

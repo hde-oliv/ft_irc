@@ -40,6 +40,9 @@ void		replaceString(std::string &subject, std::string &search,
 Command		stringToCommand(std::string source);
 std::string toIrcUpperCase(std::string s);
 void		strip(std::string &str);
+void		trimStart(std::string &str);
+void		trimEnd(std::string &str);
+void		trimAll(std::string &str);
 #endif
 
 std::string toValidChannelName(std::string rawName);

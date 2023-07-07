@@ -1,5 +1,35 @@
 #include "Utils.hpp"
+void trimAll(std::string& str) {
+	std::size_t start = 0;
+	std::size_t end	  = str.length();
 
+	while (start < end && std::isspace(str[start])) {
+		start++;
+	}
+
+	while (end > start && std::isspace(str[end - 1])) {
+		end--;
+	}
+	str = str.substr(start, end - start);
+}
+void trimStart(std::string& str) {
+	std::size_t start = 0;
+	std::size_t end	  = str.length();
+
+	while (start < end && std::isspace(str[start])) {
+		start++;
+	}
+	str = str.substr(start);
+}
+void trimEnd(std::string& str) {
+	std::size_t size = str.length();
+	std::size_t cut	 = 0;
+
+	while (cut < size && std::isspace(str[size - 1 - cut])) {
+		cut++;
+	}
+	str = str.substr(0, size - cut);
+}
 Command stringToCommand(std::string source) {
 	Command c;
 
