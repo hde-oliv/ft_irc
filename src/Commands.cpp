@@ -91,14 +91,16 @@ void Server::join(pollfd p, Command &t) {
 			Channel *ch = &channels[toIrcUpperCase(*it_name)];
 			if (ch->getName() == "") {
 				ch->setName(*it_name);
-				// user creating channer is its owner!
+				ch->setOwner(c);
+			} else {
+				ch->addClient(c);
 			}
+			// after implementing BANS, this line should check for bans!
 			reponseStream << c->getClientPrefix();
 			reponseStream << " JOIN :";
 			reponseStream << *it_name;
 			reponseStream << "\r\n";
 
-			ch->addClient(c);
 			ch->broadcastToClients(reponseStream.str());
 			if (ch->getTopic() != "") {
 				c->setSendData(topic(p, ch));
@@ -108,16 +110,17 @@ void Server::join(pollfd p, Command &t) {
 			c->setSendData(namreply(p, ch));
 			it_name++;
 		}
-		return (void);
+		return;
 	}
-	// if size == 2, channels and names
+	// if size == 2, channels and passwords
 	if (t.args.size() == 2) {
 		std::vector<std::string> chanNames = splitWithToken(t.args[0], ',');
-		std::vector<std::string> psws	   = splitWithToken(t.args[0], ',');
+		std::vector<std::string> psws	   = splitWithToken(t.args[1], ',');
 		if (chanNames.size() != psws.size())
 			return (c->setSendData(needmoreparams(p, "JOIN")));
 
 		std::vector<std::string>::iterator it_name = chanNames.begin();
+		std::vector<std::string>::iterator it_psw  = psws.begin();
 		while (it_name != chanNames.end()) {
 			std::stringstream reponseStream;
 			if (!validChannelName(*it_name))
@@ -125,14 +128,21 @@ void Server::join(pollfd p, Command &t) {
 			Channel *ch = &channels[toIrcUpperCase(*it_name)];
 			if (ch->getName() == "") {
 				ch->setName(*it_name);
-				// user creating channer is its owner!
+				if (!ch->setPassword(*it_psw)) {
+					return (c->setSendData(needmoreparams(p, "JOIN")));
+				}
+				ch->setOwner(c);
+			} else {
+				ch->addClient(c);
 			}
+			if (!ch->validatePsw(*it_psw)) {
+				return (c->setSendData(needmoreparams(p, "JOIN")));
+			}
+			// after implementing BANS, this line should check for bans!
 			reponseStream << c->getClientPrefix();
 			reponseStream << " JOIN :";
 			reponseStream << *it_name;
 			reponseStream << "\r\n";
-
-			ch->addClient(c);
 			ch->broadcastToClients(reponseStream.str());
 			if (ch->getTopic() != "") {
 				c->setSendData(topic(p, ch));
@@ -141,8 +151,9 @@ void Server::join(pollfd p, Command &t) {
 			}
 			c->setSendData(namreply(p, ch));
 			it_name++;
+			it_psw++;
 		}
-		return (void);
+		return;
 	}
 	return (c->setSendData(nosuchchannel(p, t.args[0])));
 	/*
@@ -170,7 +181,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC

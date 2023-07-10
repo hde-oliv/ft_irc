@@ -21,9 +21,17 @@ class Channel {
 	std::string getTopic() const;
 
 	std::vector<Client *> getClients() const;
+	std::vector<Client *> getOperators() const;
+
+	bool validatePsw(std::string psw);
+
+	bool setPassword(std::string newPsw);
 
 	void setName(std::string name);
 	void setTopic(std::string topic);
+
+	void	setOwner(Client *c);
+	Client *getOwner();
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
@@ -36,6 +44,7 @@ class Channel {
 	bool isOperator(Client *c);
 
 	private:
+	Client			   *owner;
 	std::string			  name;
 	std::string			  topic;
 	std::string			  host;

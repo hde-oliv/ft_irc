@@ -122,7 +122,7 @@ void Server::newClientHandling() {
 		return;
 	}
 
-	if (pollFds.size() + 1 < MAX_CLIENTS) {
+	if (pollFds.size() < MAX_CLIENTS + 1) {
 		Client newClient;
 		pollfd newPollFd;
 
@@ -309,7 +309,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
