@@ -243,13 +243,30 @@ void Server::ping(pollfd p, Command &t) {
 	c->setSendData(ss.str());
 }
 
+void Server::mode(pollfd p, Command &t) {
+	Client	   *c		  = &clients[p.fd];
+	std::string ch_prefix = CHANNEL_PREFIX;
+	// identify if command applies to channel or client
+	if (ch_prefix.find(t.args[0].at(0)))  // is channel
+	{
+	} else {
+	}
+	/*
+	 Parameters:
+		<channel>
+		{[+|-]|o|p|s|i|t|n|b|v}
+		[<limit>]
+		[<user>]
+		[<ban mask>]
+	*/
+}
 // Utils
 bool Server::validNickname(std::string nickname) {
 	if (nickname.empty() || isdigit(nickname[0])) {
 		return false;
 	}
 
-	std::string disallowedChars = " ,*?!@$.#&:\r\n\0\a";
+	std::string disallowedChars = FORBIDDEN_USER_CHARS;
 	for (size_t i = 0; i < nickname.length(); ++i) {
 		if (disallowedChars.find(nickname[i]) != std::string::npos) {
 			return false;
@@ -274,7 +291,7 @@ bool Server::nicknameAlreadyExists(std::string nickname) {
 bool Server::validChannelName(std::string name) {
 	if (name.length() < 1) return false;
 
-	std::string prefixes = "&#!+";
+	std::string prefixes = CHANNEL_PREFIX;
 
 	if (prefixes.find(name.at(0)) == std::string::npos) return false;
 	if (name.length() > 50) return false;

@@ -21,6 +21,7 @@
 #define QUITED 1
 #define KICKED 2
 #define MAX_CLIENTS 5
+#define FORBIDDEN_USER_CHARS " ,*?!@$.#&:\r\n\0\a+"
 
 class Server {
 	public:
@@ -63,6 +64,7 @@ class Server {
 	void who(pollfd p, Command &t);
 	void whowas(pollfd p, Command &t);
 	void whois(pollfd p, Command &t);
+	void mode(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
