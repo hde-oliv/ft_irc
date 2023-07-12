@@ -39,42 +39,37 @@ class Channel {
 	Channel(void);
 	~Channel(void);
 
-	std::string getName() const;
-	std::string getTopic() const;
-
+	std::string			  getName() const;
+	std::string			  getTopic() const;
 	std::vector<Client *> getClients() const;
 	std::vector<Client *> getOperators() const;
+	Client				 *getCreator();
+	unsigned int		  getUserLimit() const;
+	std::string			  getPassword() const;
 
-	bool validatePsw(std::string psw);
-
-	bool setPassword(std::string newPsw);
-
+	bool isOperator(Client *c);
+	bool isInitialized();
+	bool validatePassword(std::string password);
+	void setPassword(std::string password);
 	void setName(std::string name);
 	void setTopic(std::string topic);
-
-	void	setCreator(Client *c);
-	Client *getCreator();
-
-	void		 setUserLimit(unsigned int limit);
-	unsigned int getUserLimit();
+	void setCreator(Client *c);
+	void setUserLimit(unsigned int limit);
+	void setInitialized(bool value);
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
-
 	void addOperator(Client *c);
 	void removeOperator(Client *c);
-
 	void promoteOperator(std::string clientNickname);
 	void demoteOperator(std::string clientNickname);
-
 	void broadcastToClients(std::string message);
-
-	bool isOperator(Client *c);
-
 	void toggleMode(char mode, bool on);
+	void initialize(std::string name, std::string password, Client *op);
+	void initialize(std::string name, Client *op);
 
 	private:
-	Client			   *creator;
+	Client				 *creator;
 	std::string			  name;
 	std::string			  topic;
 	std::string			  host;
@@ -84,6 +79,7 @@ class Channel {
 	std::set<char>		  modes;
 	std::string			  banMask;
 	unsigned int		  userLimit;
+	bool				  initialized;
 };
 
 #endif
