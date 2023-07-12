@@ -253,8 +253,8 @@ void Server::mode(pollfd p, Command &t) {
 			needmoreparams(p, "MODE"));	  // ERR_NEEDMOREPARAMS 461
 	if (ch_prefix.find(t.args[0].at(0)))  // is channel
 	{
-		std::string toggleMode	   = "psitnmbvk";
-		std::string cmdsWithParams = "ol";
+		std::string toggleMode	   = "psitnmk";
+		std::string cmdsWithParams = "olbv";
 		std::string cmdPrefix	   = "+-";
 		std::string knownModes	   = toggleMode + cmdsWithParams;
 		// validChannelName
@@ -273,23 +273,80 @@ void Server::mode(pollfd p, Command &t) {
 			if (!knownModes.find(t.args[1].at(i)))
 				return (c->setSendData(unknownmode(p, t.args[0][1])));
 		}
+		std::set<char> cmdModes;
+		while (t.args[1].size() > 0) {
+			cmdModes.insert(t.args[1][0]);
+			t.args[1].erase(1, 0);
+		}
+		std::set<char>::iterator modeIt;
+		for (std::size_t i; i < toggleMode.size(); i++) {
+			modeIt = cmdModes.find(toggleMode.at(i));
+			if (modeIt != cmdModes.end()) {
+				ch.toggleMode(*modeIt, on);
+			}
+		}
+		std::size_t argIndex = 2;
+		// uses first argument after modes t.args[2]
+		modeIt = cmdModes.find('l');
+		if (modeIt != cmdModes.end()) {
+			if (t.args.size() - 1 < argIndex)
+				return (c->setSendData(needmoreparams(p, "MODE")));
+			unsigned long limit = strtoul(t.args[argIndex].c_str(), NULL, 10);
+			if (limit > 0) {
+				ch.setUserLimit(static_cast<unsigned int>(limit));
+			}
+			argIndex++;
+		}
+		modeIt = cmdModes.find('o');
+		if (modeIt != cmdModes.end()) {
+			if (t.args.size() - 1 < argIndex)
+				return (c->setSendData(needmoreparams(p, "MODE")));
+			if (on) {
+				ch.promoteOperator(t.args[argIndex]);
+			} else {
+				ch.demoteOperator(t.args[argIndex]);
+			}
+		}
+		modeIt = cmdModes.find('v');
+		if (modeIt != cmdModes.end()) {
+			if (t.args.size() - 1 < argIndex)
+				return (c->setSendData(needmoreparams(p, "MODE")));
+			// execute l!
+			argIndex++;
+		}
+		modeIt = cmdModes.find('b');
+		if (modeIt != cmdModes.end()) {
+			if (t.args.size() - 1 < argIndex)
+				return (c->setSendData(needmoreparams(p, "MODE")));
+			// execute l!
+			argIndex++;
+		}
+		/*
+		Parameters:
+			<channel>
+			o l b v
+			p s i t n m k
+			[<limit>]
+			[<user>]
+			[<ban mask>]
 		std::vector<char> cmdModes;
 		while (t.args[1].size() > 0) {	// do not execute USER cmds
-			cmdModes.push_back(t.args[0][0]);
+			cmdModes.push_back(t.args[1][0]);
 			t.args[0].erase(0, 1);
 			if (toggleMode.find(cmdModes.back()) != std::string::npos) {
 				ch.toggleMode(cmdModes.back(), on);
 				cmdModes.pop_back();
 			}
 		}
+		*/
 
+	} else {  // user Mode
 		/*
-		Parameters:
-			<channel>
-			{[+|-] p|s|i|t|n|m|b|v|k} {o|l}
-			[<limit>]
-			[<user>]
-			[<ban mask>]
+			Parameters: <nickname> {[+|-]|i|w|s|o}
+		*/
+		return;
+	}
+	/*
 		resps:
 		324	RPL_CHANNELMODEIS		"<channel> <mode> <mode params>"
 		367	RPL_BANLIST				"<channel> <banid>"
@@ -318,17 +375,6 @@ void Server::mode(pollfd p, Command &t) {
 				  message was sent with a nickname parameter and that
 				  the a mode flag sent was not recognized.
 		*/
-	} else {
-		return;
-	}
-	/*
-	 Parameters:
-		<channel>
-		{[+|-]|o|p|s|i|t|n|b|v}
-		[<limit>]
-		[<user>]
-		[<ban mask>]
-	*/
 }
 // Utils
 bool Server::validNickname(std::string nickname) {

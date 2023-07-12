@@ -55,11 +55,17 @@ class Channel {
 	void	setCreator(Client *c);
 	Client *getCreator();
 
+	void		 setUserLimit(unsigned int limit);
+	unsigned int getUserLimit();
+
 	void addClient(Client *c);
 	void removeClient(Client *c);
 
 	void addOperator(Client *c);
 	void removeOperator(Client *c);
+
+	void promoteOperator(std::string clientNickname);
+	void demoteOperator(std::string clientNickname);
 
 	void broadcastToClients(std::string message);
 

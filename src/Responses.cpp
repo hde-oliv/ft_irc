@@ -268,7 +268,7 @@ std::string Server::nosuchserver(pollfd p, std::string name) {
 
 std::string Server::unknownmode(pollfd p, char c) {
 	std::stringstream ss;
-
+	(void)p;  // TODO will i need it?
 	ss << ":localhost 472";
 	ss << " " << c;
 	ss << " :is unknown mode char to me";

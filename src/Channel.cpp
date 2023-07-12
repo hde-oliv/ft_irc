@@ -65,3 +65,15 @@ void Channel::toggleMode(char mode, bool on) {
 	else
 		modes.erase(mode);
 };
+
+void		 Channel::setUserLimit(unsigned int limit) { userLimit = limit; };
+unsigned int Channel::getUserLimit() { return (userLimit); };
+
+void Channel::promoteOperator(std::string clientNickname) {
+	std::cout << "(TODO)promote " << clientNickname << "to operator of " << name
+			  << std::endl;
+};
+void Channel::demoteOperator(std::string clientNickname) {
+	std::cout << "(TODO)demote " << clientNickname << "to regular user of "
+			  << name << std::endl;
+};
