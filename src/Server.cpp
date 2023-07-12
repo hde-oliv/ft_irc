@@ -110,6 +110,21 @@ void Server::clientEventHandling() {
 	}
 }
 
+std::map<std::string, Channel>::iterator Server::getChannelByName(
+	std::string channelName) {
+	std::string upperInput = toIrcUpperCase(channelName);
+
+	std::map<std::string, Channel>::iterator it = channels.begin();
+	while (it != channels.end()) {
+		std::string upperChannel = toIrcUpperCase((*it).first);
+		if (upperInput == upperChannel) {
+			return it;
+		}
+		it++;
+	}
+	return channels.end();
+};
+
 void Server::newClientHandling() {
 	struct sockaddr_in client_address;
 	int				   addrlen = sizeof(client_address);

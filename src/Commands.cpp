@@ -1,5 +1,6 @@
 #include <sys/poll.h>
 
+#include <set>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -91,7 +92,7 @@ void Server::join(pollfd p, Command &t) {
 			Channel *ch = &channels[toIrcUpperCase(*it_name)];
 			if (ch->getName() == "") {
 				ch->setName(*it_name);
-				ch->setOwner(c);
+				ch->setCreator(c);
 			} else {
 				ch->addClient(c);
 			}
@@ -131,7 +132,7 @@ void Server::join(pollfd p, Command &t) {
 				if (!ch->setPassword(*it_psw)) {
 					return (c->setSendData(needmoreparams(p, "JOIN")));
 				}
-				ch->setOwner(c);
+				ch->setCreator(c);
 			} else {
 				ch->addClient(c);
 			}
@@ -247,9 +248,78 @@ void Server::mode(pollfd p, Command &t) {
 	Client	   *c		  = &clients[p.fd];
 	std::string ch_prefix = CHANNEL_PREFIX;
 	// identify if command applies to channel or client
+	if (t.args.size() < 2)
+		return c->setSendData(
+			needmoreparams(p, "MODE"));	  // ERR_NEEDMOREPARAMS 461
 	if (ch_prefix.find(t.args[0].at(0)))  // is channel
 	{
+		std::string toggleMode	   = "psitnmbvk";
+		std::string cmdsWithParams = "ol";
+		std::string cmdPrefix	   = "+-";
+		std::string knownModes	   = toggleMode + cmdsWithParams;
+		// validChannelName
+		std::map<std::string, Channel>::iterator it =
+			getChannelByName(t.args[1]);
+		if (it == channels.end()) {
+			return (c->setSendData(nosuchchannel(p, "MODE")));
+		}
+		Channel &ch = it->second;
+		if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
+			return (c->setSendData(unknownmode(p, t.args[0][1])));
+		bool on = t.args[1][0] == '+';
+		t.args[1].erase(0, 1);
+		// search for each mode in the allowed list
+		for (std::size_t i = 0; i < t.args[1].size(); i++) {
+			if (!knownModes.find(t.args[1].at(i)))
+				return (c->setSendData(unknownmode(p, t.args[0][1])));
+		}
+		std::vector<char> cmdModes;
+		while (t.args[1].size() > 0) {	// do not execute USER cmds
+			cmdModes.push_back(t.args[0][0]);
+			t.args[0].erase(0, 1);
+			if (toggleMode.find(cmdModes.back()) != std::string::npos) {
+				ch.toggleMode(cmdModes.back(), on);
+				cmdModes.pop_back();
+			}
+		}
+
+		/*
+		Parameters:
+			<channel>
+			{[+|-] p|s|i|t|n|m|b|v|k} {o|l}
+			[<limit>]
+			[<user>]
+			[<ban mask>]
+		resps:
+		324	RPL_CHANNELMODEIS		"<channel> <mode> <mode params>"
+		367	RPL_BANLIST				"<channel> <banid>"
+		368	RPL_ENDOFBANLIST		"<channel> :End of channel ban list"
+			- When listing the active 'bans' for a
+				given channel, a server is required to send the list back using
+				the RPL_BANLIST and RPL_ENDOFBANLIST messages. A separate
+				RPL_BANLIST is sent for each active banid.  After the banids
+				have been listed (or if none present) a RPL_ENDOFBANLIST must be
+				sent.
+
+		221	RPL_UMODEIS				"<user mode string>"
+			- To answer a query about a client's own
+		m		ode, RPL_UMODEIS is sent back.
+
+		442	ERR_NOTONCHANNEL		"<channel> :You're not on that channel"
+		461	ERR_NEEDMOREPARAMS		"<command> :Not enough parameters"
+		482	ERR_CHANOPRIVSNEEDED	"<channel> :You're not channel operator"
+		472	ERR_UNKNOWNMODE			"<char> :is unknown mode char to me"
+		502	ERR_USERSDONTMATCH		":Cant change mode for other users"
+		401	ERR_NOSUCHNICK			"<nickname> :No such nick/channel"
+		467	ERR_KEYSET				"<channel> :Channel key already set"
+		403	ERR_NOSUCHCHANNEL		"<channel name> :No such channel"
+		501	ERR_UMODEUNKNOWNFLAG	":Unknown MODE flag"
+			- Returned by the server to indicate that a MODE
+				  message was sent with a nickname parameter and that
+				  the a mode flag sent was not recognized.
+		*/
 	} else {
+		return;
 	}
 	/*
 	 Parameters:

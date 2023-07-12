@@ -44,6 +44,9 @@ class Server {
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
 
+	std::map<std::string, Channel>::iterator getChannelByName(
+		std::string channelName);
+
 	std::string					   creationDatetime;
 	std::string					   password;
 	int							   port;
@@ -85,6 +88,7 @@ class Server {
 	std::string namreply(pollfd p, Channel *ch);
 	std::string whoreply(pollfd p, Channel *ch);
 	std::string nosuchserver(pollfd p, std::string name);
+	std::string unknownmode(pollfd p, char c);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

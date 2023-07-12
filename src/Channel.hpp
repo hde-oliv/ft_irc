@@ -52,8 +52,8 @@ class Channel {
 	void setName(std::string name);
 	void setTopic(std::string topic);
 
-	void	setOwner(Client *c);
-	Client *getOwner();
+	void	setCreator(Client *c);
+	Client *getCreator();
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
@@ -65,8 +65,10 @@ class Channel {
 
 	bool isOperator(Client *c);
 
+	void toggleMode(char mode, bool on);
+
 	private:
-	Client			   *owner;
+	Client			   *creator;
 	std::string			  name;
 	std::string			  topic;
 	std::string			  host;
@@ -74,6 +76,8 @@ class Channel {
 	std::vector<Client *> operators;
 	std::vector<Client *> clients;
 	std::set<char>		  modes;
+	std::string			  banMask;
+	unsigned int		  userLimit;
 };
 
 #endif

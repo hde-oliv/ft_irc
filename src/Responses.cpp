@@ -191,8 +191,8 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 
 	ss << ":localhost 353 " << c->getNickname();
 	ss << " = :" << ch->getName() << " ";
-	if (ch->getOwner()) {
-		ss << "!" << ch->getOwner()->getNickname() << " ";
+	if (ch->getCreator()) {
+		ss << "!" << ch->getCreator()->getNickname() << " ";
 	}
 	for (std::size_t i_o = 0; i_o < ope.size(); i_o++) {
 		ss << "@" << ope[i_o]->getNickname() << " ";
@@ -261,6 +261,17 @@ std::string Server::nosuchserver(pollfd p, std::string name) {
 	ss << " " << c->getNickname();
 	ss << " " << name;
 	ss << " :No such server";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::unknownmode(pollfd p, char c) {
+	std::stringstream ss;
+
+	ss << ":localhost 472";
+	ss << " " << c;
+	ss << " :is unknown mode char to me";
 	ss << "\r\n";
 
 	return ss.str();

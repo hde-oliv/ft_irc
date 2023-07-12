@@ -5,8 +5,9 @@
 #include "Utils.hpp"
 
 Channel::Channel() {
-	host  = "localhost";
-	owner = NULL;
+	host	  = "localhost";
+	creator	  = NULL;
+	userLimit = USER_CHANNEL_LIMIT;
 }
 
 Channel::~Channel() {}
@@ -54,6 +55,13 @@ bool Channel::setPassword(std::string newPsw) {
 	password = newPsw;
 	return true;
 };
-void Channel::setOwner(Client *c) { owner = c; };
+void Channel::setCreator(Client *c) { creator = c; };
 
-Client *Channel::getOwner() { return owner; };
+Client *Channel::getCreator() { return creator; };
+
+void Channel::toggleMode(char mode, bool on) {
+	if (on)
+		modes.insert(mode);
+	else
+		modes.erase(mode);
+};
