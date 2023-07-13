@@ -68,6 +68,9 @@ class Server {
 	void whowas(pollfd p, Command &t);
 	void whois(pollfd p, Command &t);
 	void mode(pollfd p, Command &t);
+	void privmsg(pollfd p, Command &t);
+
+	void channelMode(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 

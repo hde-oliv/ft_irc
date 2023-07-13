@@ -63,7 +63,7 @@ class Channel {
 	void removeOperator(Client *c);
 	void promoteOperator(std::string clientNickname);
 	void demoteOperator(std::string clientNickname);
-	void broadcastToClients(std::string message);
+	void broadcast(Client *sender, std::string message, bool toSend);
 	void toggleMode(char mode, bool on);
 	void initialize(std::string name, std::string password, Client *op);
 	void initialize(std::string name, Client *op);

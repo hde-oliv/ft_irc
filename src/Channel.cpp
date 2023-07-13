@@ -43,10 +43,15 @@ void Channel::removeOperator(Client *c) {
 	(void)std::remove(operators.begin(), operators.end(), c);
 }
 
-void Channel::broadcastToClients(std::string message) {
+void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 	std::vector<Client *>::iterator it = clients.begin();
+
 	for (; it != clients.end(); it++) {
-		(*it)->setSendData(message);
+		if (*it == sender && toSend) {
+			(*it)->setSendData(message);
+		} else if (*it != sender) {
+			(*it)->setSendData(message);
+		}
 	}
 }
 

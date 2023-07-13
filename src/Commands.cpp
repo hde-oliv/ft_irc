@@ -81,6 +81,28 @@ void Server::oper(pollfd p, Command &t) {
 	// TODO: Send MODE +o
 }
 
+void Server::privmsg(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	if (t.args.size() < 2) {
+		c->setSendData(needmoreparams(p, "PRIVMSG"));
+		return;
+	}
+
+	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+
+	ss << c->getClientPrefix();
+	ss << " PRIVMSG";
+	ss << " ";
+	ss << t.args[0];
+	ss << " ";
+	ss << t.args[1];
+	ss << "\r\n";
+
+	ch->broadcast(c, ss.str(), false);
+}
+
 void Server::join(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
@@ -101,7 +123,7 @@ void Server::join(pollfd p, Command &t) {
 	bool sentPassword = t.args.size() > 1;
 
 	if (sentPassword) {
-		bool v = ch->validatePassword(t.args[2]);
+		bool v = ch->validatePassword(t.args[1]);
 
 		if (!v) {
 			c->setSendData(needmoreparams(p, "JOIN"));
@@ -117,7 +139,10 @@ void Server::join(pollfd p, Command &t) {
 		}
 	}
 
-	if (sentPassword && ch->getPassword() != t.args[2]) {
+	// NOTE: Check if client sent a password and if its incorrect or
+	// the server has a password and the client didnt provide one
+	// TODO: Check if these responses are correct
+	if (sentPassword && ch->getPassword() != t.args[1]) {
 		c->setSendData(needmoreparams(p, "JOIN"));
 		return;
 	} else if (!sentPassword && ch->getPassword() != "") {
@@ -133,7 +158,7 @@ void Server::join(pollfd p, Command &t) {
 	ss << t.args[0];
 	ss << "\r\n";
 
-	ch->broadcastToClients(ss.str());
+	ch->broadcast(c, ss.str(), true);
 
 	if (ch->getTopic() != "") {
 		c->setSendData(topic(p, ch));
@@ -230,103 +255,122 @@ void Server::ping(pollfd p, Command &t) {
 	c->setSendData(ss.str());
 }
 
+void Server::channelMode(pollfd p, Command &t) {
+	Client *c = &clients[p.fd];
+
+	std::string toggleMode						= "psitnmk";
+	std::string cmdsWithParams					= "olbv";
+	std::string cmdPrefix						= "+-";
+	std::string knownModes						= toggleMode + cmdsWithParams;
+	std::map<std::string, Channel>::iterator it = getChannelByName(t.args[1]);
+
+	if (it == channels.end()) {
+		return (c->setSendData(nosuchchannel(p, "MODE")));
+	}
+
+	Channel &ch = it->second;
+
+	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
+		return (c->setSendData(unknownmode(p, t.args[0][1])));
+
+	bool on = t.args[1][0] == '+';
+	t.args[1].erase(0, 1);
+
+	// search for each mode in the allowed list
+	for (std::size_t i = 0; i < t.args[1].size(); i++) {
+		if (!knownModes.find(t.args[1].at(i)))
+			return (c->setSendData(unknownmode(p, t.args[0][1])));
+	}
+
+	std::set<char> cmdModes;
+	while (t.args[1].size() > 0) {
+		cmdModes.insert(t.args[1][0]);
+		t.args[1].erase(1, 0);
+	}
+
+	std::set<char>::iterator modeIt;
+	for (std::size_t i; i < toggleMode.size(); i++) {
+		modeIt = cmdModes.find(toggleMode.at(i));
+		if (modeIt != cmdModes.end()) {
+			ch.toggleMode(*modeIt, on);
+		}
+	}
+
+	std::size_t argIndex = 2;
+	// uses first argument after modes t.args[2]
+
+	modeIt = cmdModes.find('l');
+	if (modeIt != cmdModes.end()) {
+		if (t.args.size() - 1 < argIndex)
+			return (c->setSendData(needmoreparams(p, "MODE")));
+
+		unsigned long limit = strtoul(t.args[argIndex].c_str(), NULL, 10);
+
+		if (limit > 0) {
+			ch.setUserLimit(static_cast<unsigned int>(limit));
+		}
+		argIndex++;
+	}
+
+	modeIt = cmdModes.find('o');
+	if (modeIt != cmdModes.end()) {
+		if (t.args.size() - 1 < argIndex)
+			return (c->setSendData(needmoreparams(p, "MODE")));
+		if (on) {
+			ch.promoteOperator(t.args[argIndex]);
+		} else {
+			ch.demoteOperator(t.args[argIndex]);
+		}
+	}
+
+	modeIt = cmdModes.find('v');
+	if (modeIt != cmdModes.end()) {
+		if (t.args.size() - 1 < argIndex)
+			return (c->setSendData(needmoreparams(p, "MODE")));
+		// execute l!
+		argIndex++;
+	}
+
+	modeIt = cmdModes.find('b');
+	if (modeIt != cmdModes.end()) {
+		if (t.args.size() - 1 < argIndex)
+			return (c->setSendData(needmoreparams(p, "MODE")));
+		// execute l!
+		argIndex++;
+	}
+
+	/*
+	Parameters:
+		<channel>
+		o l b v
+		p s i t n m k
+		[<limit>]
+		[<user>]
+		[<ban mask>]
+	std::vector<char> cmdModes;
+	while (t.args[1].size() > 0) {	// do not execute USER cmds
+		cmdModes.push_back(t.args[1][0]);
+		t.args[0].erase(0, 1);
+		if (toggleMode.find(cmdModes.back()) != std::string::npos) {
+			ch.toggleMode(cmdModes.back(), on);
+			cmdModes.pop_back();
+		}
+	}
+	*/
+}
+
 void Server::mode(pollfd p, Command &t) {
 	Client	   *c		  = &clients[p.fd];
 	std::string ch_prefix = CHANNEL_PREFIX;
+
 	// identify if command applies to channel or client
 	if (t.args.size() < 2)
 		return c->setSendData(
-			needmoreparams(p, "MODE"));	  // ERR_NEEDMOREPARAMS 461
-	if (ch_prefix.find(t.args[0].at(0)))  // is channel
-	{
-		std::string toggleMode	   = "psitnmk";
-		std::string cmdsWithParams = "olbv";
-		std::string cmdPrefix	   = "+-";
-		std::string knownModes	   = toggleMode + cmdsWithParams;
-		// validChannelName
-		std::map<std::string, Channel>::iterator it =
-			getChannelByName(t.args[1]);
-		if (it == channels.end()) {
-			return (c->setSendData(nosuchchannel(p, "MODE")));
-		}
-		Channel &ch = it->second;
-		if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
-			return (c->setSendData(unknownmode(p, t.args[0][1])));
-		bool on = t.args[1][0] == '+';
-		t.args[1].erase(0, 1);
-		// search for each mode in the allowed list
-		for (std::size_t i = 0; i < t.args[1].size(); i++) {
-			if (!knownModes.find(t.args[1].at(i)))
-				return (c->setSendData(unknownmode(p, t.args[0][1])));
-		}
-		std::set<char> cmdModes;
-		while (t.args[1].size() > 0) {
-			cmdModes.insert(t.args[1][0]);
-			t.args[1].erase(1, 0);
-		}
-		std::set<char>::iterator modeIt;
-		for (std::size_t i; i < toggleMode.size(); i++) {
-			modeIt = cmdModes.find(toggleMode.at(i));
-			if (modeIt != cmdModes.end()) {
-				ch.toggleMode(*modeIt, on);
-			}
-		}
-		std::size_t argIndex = 2;
-		// uses first argument after modes t.args[2]
-		modeIt = cmdModes.find('l');
-		if (modeIt != cmdModes.end()) {
-			if (t.args.size() - 1 < argIndex)
-				return (c->setSendData(needmoreparams(p, "MODE")));
-			unsigned long limit = strtoul(t.args[argIndex].c_str(), NULL, 10);
-			if (limit > 0) {
-				ch.setUserLimit(static_cast<unsigned int>(limit));
-			}
-			argIndex++;
-		}
-		modeIt = cmdModes.find('o');
-		if (modeIt != cmdModes.end()) {
-			if (t.args.size() - 1 < argIndex)
-				return (c->setSendData(needmoreparams(p, "MODE")));
-			if (on) {
-				ch.promoteOperator(t.args[argIndex]);
-			} else {
-				ch.demoteOperator(t.args[argIndex]);
-			}
-		}
-		modeIt = cmdModes.find('v');
-		if (modeIt != cmdModes.end()) {
-			if (t.args.size() - 1 < argIndex)
-				return (c->setSendData(needmoreparams(p, "MODE")));
-			// execute l!
-			argIndex++;
-		}
-		modeIt = cmdModes.find('b');
-		if (modeIt != cmdModes.end()) {
-			if (t.args.size() - 1 < argIndex)
-				return (c->setSendData(needmoreparams(p, "MODE")));
-			// execute l!
-			argIndex++;
-		}
-		/*
-		Parameters:
-			<channel>
-			o l b v
-			p s i t n m k
-			[<limit>]
-			[<user>]
-			[<ban mask>]
-		std::vector<char> cmdModes;
-		while (t.args[1].size() > 0) {	// do not execute USER cmds
-			cmdModes.push_back(t.args[1][0]);
-			t.args[0].erase(0, 1);
-			if (toggleMode.find(cmdModes.back()) != std::string::npos) {
-				ch.toggleMode(cmdModes.back(), on);
-				cmdModes.pop_back();
-			}
-		}
-		*/
+			needmoreparams(p, "MODE"));	 // ERR_NEEDMOREPARAMS 461
 
-	} else {  // user Mode
+	if (ch_prefix.find(t.args[0].at(0))) {
+		channelMode(p, t);
+	} else {
 		/*
 			Parameters: <nickname> {[+|-]|i|w|s|o}
 		*/
@@ -362,6 +406,7 @@ void Server::mode(pollfd p, Command &t) {
 				  the a mode flag sent was not recognized.
 		*/
 }
+
 // Utils
 bool Server::validNickname(std::string nickname) {
 	if (nickname.empty() || isdigit(nickname[0])) {

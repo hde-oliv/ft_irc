@@ -6,6 +6,7 @@ Client::Client() {
 	this->knowPassword = false;
 	this->welcome	   = false;
 	this->toDisconnect = false;
+	this->op		   = false;
 }
 
 Client::~Client() {}

@@ -197,7 +197,7 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 	for (std::size_t i_o = 0; i_o < ope.size(); i_o++) {
 		ss << "@" << ope[i_o]->getNickname() << " ";
 	}
-	for (std::size_t i_c; i_c < cli.size(); i_c++) {
+	for (std::size_t i_c = 0; i_c < cli.size(); i_c++) {
 		ss << cli[i_c]->getNickname() << " ";
 	}
 	ss << "\r\n";

@@ -205,7 +205,7 @@ void Server::readFromClient(pollfd p) {
 
 	for (; it < c->cmdVec.end(); it++) {
 		// DEBUG
-		std::cout << "Client " << p.fd << " sent: ";
+		std::cout << "Client " << c->getNickname() << " " << p.fd << " sent: ";
 		std::cout << RED << (*it) << RESET << std::endl;
 		executeClientMessage(p, (*it));
 	}
@@ -231,8 +231,9 @@ void Server::sendToClient(pollfd p) {
 }
 
 void Server::ejectClient(int clientFd, int reason) {
-	for (std::vector<pollfd>::iterator it = pollFds.begin(); it < pollFds.end();
-		 it++) {
+	std::vector<pollfd>::iterator it = pollFds.begin();
+
+	for (; it < pollFds.end(); it++) {
 		if ((*it).fd == clientFd) {
 			close(clientFd);
 			std::memset(&(*it), 0, sizeof(pollfd));
@@ -283,12 +284,16 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 		quit(p, cm);
 	} else if (cm.cmd == "PING") {
 		ping(p, cm);
+	} else if (cm.cmd == "MODE") {
+		mode(p, cm);
+	} else if (cm.cmd == "PRIVMSG") {
+		privmsg(p, cm);
 	} else if (cm.cmd == "WHO") {
-		who(p, cm);
+		who(p, cm);	 // TODO
 	} else if (cm.cmd == "WHOIS") {
-		whois(p, cm);
+		whois(p, cm);  // TODO
 	} else if (cm.cmd == "WHOWAS") {
-		whowas(p, cm);
+		whowas(p, cm);	// TODO
 	} else {
 		c->setSendData(unknowncommand(p, cm.cmd));
 	}
@@ -324,7 +329,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
