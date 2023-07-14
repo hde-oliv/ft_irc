@@ -76,9 +76,11 @@ class Client {
 
 	std::vector<Channel*> channels;
 };
+/*
 bool operator<(const Client& lhs, const Client& rhs);
 bool operator!=(const Client& lhs, const Client& rhs);
 bool operator==(const Client& lhs, const Client& rhs);
+*/
 // TODO: Consider this later
 // Because of IRC's scandanavian origin, the characters {}| are
 // considered to be the lower case equivalents of the characters []\,

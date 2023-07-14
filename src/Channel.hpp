@@ -48,8 +48,7 @@ class Channel {
 
 	std::string						 getName() const;
 	std::string						 getTopic() const;
-	std::map<Client &, unsigned int> getClients() const;
-	std::vector<Client *>			 getOperators() const;
+	std::map<Client *, unsigned int> getClients() const;
 	Client						  *getCreator();
 	unsigned int					 getUserLimit() const;
 	std::string						 getPassword() const;
@@ -85,7 +84,7 @@ class Channel {
 	std::string						 banMask;
 	unsigned int					 userLimit;
 	bool							 initialized;
-	std::map<Client &, unsigned int> clients;
+	std::map<Client *, unsigned int> clients;
 };
 
 #endif

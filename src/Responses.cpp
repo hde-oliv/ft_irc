@@ -185,8 +185,6 @@ std::string Server::notopic(pollfd p, Channel *ch) {
 
 std::string Server::namreply(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	// std::map<Client &, unsigned int> cli = ch->getClients();
-	std::vector<Client *> ope = ch->getOperators();
 
 	Client *c		= &clients[p.fd];
 	Client *creator = ch->getCreator();
@@ -196,10 +194,10 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 	if (creator) {
 		ss << "!" << creator->getNickname() << " ";
 	}
-	std::map<Client &, unsigned int>::iterator cli = ch->getClients().begin();
+	std::map<Client *, unsigned int>::iterator cli = ch->getClients().begin();
 	while (cli != ch->getClients().end()) {
 		if (creator != NULL) {
-			if (cli->first == *creator) {
+			if (cli->first == creator) {
 				cli++;
 				continue;
 			}
@@ -207,7 +205,7 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 		if (cli->second & USER_OPERATOR) {
 			ss << "@";
 		}
-		ss << cli->first.getNickname() << " ";
+		ss << (*cli->first).getNickname() << " ";
 		cli++;
 	}
 	ss << "\r\n";
@@ -225,8 +223,8 @@ std::string Server::namreply(pollfd p, Channel *ch) {
 std::string Server::whoreply(pollfd p, Channel *ch) {
 	std::stringstream						   ss;
 	Client									*c	   = &clients[p.fd];
-	std::map<Client &, unsigned int>		   clients = ch->getClients();
-	std::map<Client &, unsigned int>::iterator cli	   = clients.begin();
+	std::map<Client *, unsigned int>		   clients = ch->getClients();
+	std::map<Client *, unsigned int>::iterator cli	   = clients.begin();
 
 	// NOTE: Who is the worse command to implement
 	// check later if it can be skipped
@@ -234,12 +232,12 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 	for (; cli != clients.end(); cli++) {
 		ss << ":localhost 352 " << c->getNickname();
 		ss << " " << ch->getName();
-		ss << " " << cli->first.getUsername();
-		ss << " " << cli->first.getHostname();
-		ss << " " << cli->first.getServername();
-		ss << " " << cli->first.getNickname();
+		ss << " " << (*cli->first).getUsername();
+		ss << " " << (*cli->first).getHostname();
+		ss << " " << (*cli->first).getServername();
+		ss << " " << (*cli->first).getNickname();
 
-		if (cli->first.getOp()) {
+		if ((*cli->first).getOp()) {
 			ss << " G";
 		} else {
 			ss << " H";
@@ -250,7 +248,7 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 		// TODO: Check for voiced
 
 		ss << " :0";
-		ss << " " << cli->first.getRealname();
+		ss << " " << (*cli->first).getRealname();
 		ss << "\r\n";
 	}
 

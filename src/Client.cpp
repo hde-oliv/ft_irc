@@ -69,6 +69,7 @@ void Client::resetAllData() {
 
 void Client::resetSendData(int len) { sendData = sendData.substr(len); }
 void Client::resetReadData() { readData.clear(); }
+/*
 bool operator<(const Client& lhs, const Client& rhs) {
 	return lhs.getFd() < rhs.getFd();
 }
@@ -78,3 +79,4 @@ bool operator!=(const Client& lhs, const Client& rhs) {
 bool operator==(const Client& lhs, const Client& rhs) {
 	return lhs.getFd() == rhs.getFd();
 }
+*/

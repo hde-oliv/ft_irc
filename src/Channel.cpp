@@ -19,30 +19,30 @@ std::string Channel::getTopic() const { return topic; }
 void Channel::setInitialized(bool value) { initialized = value; }
 bool Channel::isInitialized() { return initialized; }
 
-std::map<Client &, unsigned int> Channel::getClients() const { return clients; }
+std::map<Client *, unsigned int> Channel::getClients() const { return clients; }
 
 void Channel::setName(std::string name) { this->name = name; }
 void Channel::setTopic(std::string topic) { this->topic = topic; };
 
-void Channel::addClient(Client *c) { clients.insert(std::make_pair(*c, 0)); }
+void Channel::addClient(Client *c) { clients.insert(std::make_pair(c, 0)); }
 
 std::string Channel::getPassword() const { return password; }
 void Channel::setPassword(std::string password) { this->password = password; }
 
-void Channel::removeClient(Client *c) { clients.erase(*c); }
+void Channel::removeClient(Client *c) { clients.erase(c); }
 
 void Channel::removeOperator(Client *c) {
 	(void)std::remove(operators.begin(), operators.end(), c);
 }
 
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
-	std::map<Client &, unsigned int>::iterator it = clients.begin();
+	std::map<Client *, unsigned int>::iterator it = clients.begin();
 
 	for (; it != clients.end(); it++) {
-		if (it->first == *sender && toSend) {
-			it->first.setSendData(message);
-		} else if (it->first != *sender) {
-			it->first.setSendData(message);
+		if (it->first == sender && toSend) {
+			(*it->first).setSendData(message);
+		} else if (it->first != sender) {
+			(*it->first).setSendData(message);
 		}
 	}
 }
@@ -66,13 +66,13 @@ void Channel::toggleMode(char mode, bool on) {
 void Channel::initialize(std::string name, std::string password, Client *op) {
 	this->name	   = name;
 	this->password = password;
-	this->clients.insert(std::make_pair(*op, USER_OPERATOR));
+	this->clients.insert(std::make_pair(op, USER_OPERATOR));
 	this->initialized = true;
 }
 
 void Channel::initialize(std::string name, Client *op) {
 	this->name = name;
-	this->clients.insert(std::make_pair(*op, USER_OPERATOR));
+	this->clients.insert(std::make_pair(op, USER_OPERATOR));
 	this->initialized = true;
 }
 
