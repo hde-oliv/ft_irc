@@ -92,6 +92,7 @@ class Server {
 	std::string whoreply(pollfd p, Channel *ch);
 	std::string nosuchserver(pollfd p, std::string name);
 	std::string unknownmode(pollfd p, char c);
+	std::string badchannelkey(pollfd p, std::string channel);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

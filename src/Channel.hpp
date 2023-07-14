@@ -51,10 +51,9 @@ class Channel {
 	std::map<Client *, unsigned int> getClients() const;
 	Client						  *getCreator();
 	unsigned int					 getUserLimit() const;
-	std::string						 getPassword() const;
 
 	bool isInitialized();
-	bool validatePassword(std::string password);
+	bool evalPassword(std::string psw);
 	void setPassword(std::string password);
 	void setName(std::string name);
 	void setTopic(std::string topic);

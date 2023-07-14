@@ -126,3 +126,7 @@ std::vector<std::string> splitWithToken(std::string source, char delim) {
 	subStrings.push_back(source.substr(start));
 	return (subStrings);
 }
+bool validatePassword(std::string password) {
+	if (password.find(',') != std::string::npos) return false;
+	return true;
+}

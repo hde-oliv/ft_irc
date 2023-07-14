@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -104,7 +104,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check later for ERR_BADCHANMASK
@@ -118,36 +118,35 @@ void Server::join(pollfd p, Command &t) {
 		return;
 	}
 
-	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
-
 	bool sentPassword = t.args.size() > 1;
 
 	if (sentPassword) {
-		bool v = ch->validatePassword(t.args[1]);
-
+		bool v = validatePassword(t.args[1]);
 		if (!v) {
 			c->setSendData(needmoreparams(p, "JOIN"));
 			return;
 		}
 	}
 
+	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+
 	if (!ch->isInitialized()) {
-		if (t.args.size() < 2) {
-			ch->initialize(t.args[0], c);
-		} else {
+		if (sentPassword) {
 			ch->initialize(t.args[0], t.args[1], c);
+		} else {
+			ch->initialize(t.args[0], c);
 		}
 	}
 
 	// NOTE: Check if client sent a password and if its incorrect or
 	// the server has a password and the client didnt provide one
 	// TODO: Check if these responses are correct
-	if (sentPassword && ch->getPassword() != t.args[1]) {
-		c->setSendData(needmoreparams(p, "JOIN"));
-		return;
-	} else if (!sentPassword && ch->getPassword() != "") {
-		c->setSendData(needmoreparams(p, "JOIN"));
-		return;
+	if (sentPassword) {
+		if (!ch->evalPassword(t.args[1]))
+			return c->setSendData(badchannelkey(p, ch->getName()));
+	} else {
+		if (!ch->evalPassword(""))
+			return c->setSendData(badchannelkey(p, ch->getName()));
 	}
 
 	ch->addClient(c);
@@ -193,7 +192,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -226,7 +225,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -243,7 +242,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";

@@ -274,6 +274,19 @@ std::string Server::nosuchserver(pollfd p, std::string name) {
 	return ss.str();
 }
 
+std::string Server::badchannelkey(pollfd p, std::string channel) {
+	std::stringstream ss;
+	Client		   *c = &clients[p.fd];
+
+	ss << ":localhost 475";
+	ss << " " << c->getNickname();
+	ss << " " << channel;
+	ss << " :Cannot join channel (+)";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
 std::string Server::unknownmode(pollfd p, char c) {
 	std::stringstream ss;
 	Client		   *cl = &clients[p.fd];

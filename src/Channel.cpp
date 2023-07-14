@@ -26,7 +26,6 @@ void Channel::setTopic(std::string topic) { this->topic = topic; };
 
 void Channel::addClient(Client *c) { clients.insert(std::make_pair(c, 0)); }
 
-std::string Channel::getPassword() const { return password; }
 void Channel::setPassword(std::string password) { this->password = password; }
 
 void Channel::removeClient(Client *c) { clients.erase(c); }
@@ -45,11 +44,6 @@ void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 			(*it->first).setSendData(message);
 		}
 	}
-}
-
-bool Channel::validatePassword(std::string password) {
-	if (password.find(',') != std::string::npos) return false;
-	return true;
 }
 
 void Channel::setCreator(Client *c) { creator = c; };
@@ -88,3 +82,4 @@ void Channel::demoteOperator(std::string clientNickname) {
 	std::cout << "(TODO)demote " << clientNickname << "to regular user of "
 			  << name << std::endl;
 }
+bool Channel::evalPassword(std::string psw) { return (password == psw); }

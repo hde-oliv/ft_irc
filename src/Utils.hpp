@@ -47,8 +47,8 @@ void		trimStart(std::string &str);
 void		trimEnd(std::string &str);
 void		trimAll(std::string &str);
 
-std::string toValidChannelName(std::string rawName);
-
+std::string				 toValidChannelName(std::string rawName);
 std::vector<std::string> splitWithToken(std::string source, char delim);
 
+bool validatePassword(std::string password);
 #endif
