@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -75,7 +76,9 @@ class Client {
 
 	std::vector<Channel*> channels;
 };
-
+bool operator<(const Client& lhs, const Client& rhs);
+bool operator!=(const Client& lhs, const Client& rhs);
+bool operator==(const Client& lhs, const Client& rhs);
 // TODO: Consider this later
 // Because of IRC's scandanavian origin, the characters {}| are
 // considered to be the lower case equivalents of the characters []\,

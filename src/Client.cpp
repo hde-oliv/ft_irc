@@ -1,5 +1,7 @@
 #include "Client.hpp"
 
+#include "Channel.hpp"
+
 Client::Client() {
 	this->fd		   = 0;
 	this->registration = 0;
@@ -9,7 +11,13 @@ Client::Client() {
 	this->op		   = false;
 }
 
-Client::~Client() {}
+Client::~Client() {
+	std::size_t i = 0;
+	while (i < channels.size()) {
+		channels.at(i)->removeClient(this);
+		i++;
+	}
+}
 
 int			Client::getFd() const { return fd; }
 int			Client::getRegistration() const { return registration; }
@@ -61,3 +69,12 @@ void Client::resetAllData() {
 
 void Client::resetSendData(int len) { sendData = sendData.substr(len); }
 void Client::resetReadData() { readData.clear(); }
+bool operator<(const Client& lhs, const Client& rhs) {
+	return lhs.getFd() < rhs.getFd();
+}
+bool operator!=(const Client& lhs, const Client& rhs) {
+	return lhs.getFd() != rhs.getFd();
+}
+bool operator==(const Client& lhs, const Client& rhs) {
+	return lhs.getFd() == rhs.getFd();
+}

@@ -19,38 +19,30 @@ std::string Channel::getTopic() const { return topic; }
 void Channel::setInitialized(bool value) { initialized = value; }
 bool Channel::isInitialized() { return initialized; }
 
-std::vector<Client *> Channel::getClients() const { return clients; }
-std::vector<Client *> Channel::getOperators() const { return operators; }
+std::map<Client &, unsigned int> Channel::getClients() const { return clients; }
 
 void Channel::setName(std::string name) { this->name = name; }
 void Channel::setTopic(std::string topic) { this->topic = topic; };
 
-void Channel::addClient(Client *c) { clients.push_back(c); }
-void Channel::addOperator(Client *c) { operators.push_back(c); }
+void Channel::addClient(Client *c) { clients.insert(std::make_pair(*c, 0)); }
 
 std::string Channel::getPassword() const { return password; }
 void Channel::setPassword(std::string password) { this->password = password; }
 
-bool Channel::isOperator(Client *c) {
-	return std::find(operators.begin(), operators.end(), c) != operators.end();
-}
-
-void Channel::removeClient(Client *c) {
-	(void)std::remove(clients.begin(), clients.end(), c);
-}
+void Channel::removeClient(Client *c) { clients.erase(*c); }
 
 void Channel::removeOperator(Client *c) {
 	(void)std::remove(operators.begin(), operators.end(), c);
 }
 
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
-	std::vector<Client *>::iterator it = clients.begin();
+	std::map<Client &, unsigned int>::iterator it = clients.begin();
 
 	for (; it != clients.end(); it++) {
-		if (*it == sender && toSend) {
-			(*it)->setSendData(message);
-		} else if (*it != sender) {
-			(*it)->setSendData(message);
+		if (it->first == *sender && toSend) {
+			it->first.setSendData(message);
+		} else if (it->first != *sender) {
+			it->first.setSendData(message);
 		}
 	}
 }
@@ -74,13 +66,13 @@ void Channel::toggleMode(char mode, bool on) {
 void Channel::initialize(std::string name, std::string password, Client *op) {
 	this->name	   = name;
 	this->password = password;
-	this->addOperator(op);
+	this->clients.insert(std::make_pair(*op, USER_OPERATOR));
 	this->initialized = true;
 }
 
 void Channel::initialize(std::string name, Client *op) {
 	this->name = name;
-	this->addOperator(op);
+	this->clients.insert(std::make_pair(*op, USER_OPERATOR));
 	this->initialized = true;
 }
 

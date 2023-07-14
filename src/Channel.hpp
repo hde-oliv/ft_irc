@@ -1,6 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include <map>
 #include <string>
 
 #include "Client.hpp"
@@ -10,7 +11,13 @@
 #define CHANNEL_INVALID_CHARS " ,"
 #define USER_CHANNEL_LIMIT 10
 #define CHANNEL_MODES "opsitnmlbvk"
-#define USER_MODES "iswo"
+#define USER_MODES "iswov"
+
+#define USER_INVISIBLE 0x1
+#define USER_NOTICES 0x2
+#define USER_WALLOP 0x4
+#define USER_OPERATOR 0x8
+#define USER_MUTED 0x16
 /*
 	Channel modes
 	o - give/take channel operator privileges;
@@ -33,21 +40,20 @@
 */
 #include <set>
 #include <vector>
-
+class Client;
 class Channel {
 	public:
 	Channel(void);
 	~Channel(void);
 
-	std::string			  getName() const;
-	std::string			  getTopic() const;
-	std::vector<Client *> getClients() const;
-	std::vector<Client *> getOperators() const;
-	Client				 *getCreator();
-	unsigned int		  getUserLimit() const;
-	std::string			  getPassword() const;
+	std::string						 getName() const;
+	std::string						 getTopic() const;
+	std::map<Client &, unsigned int> getClients() const;
+	std::vector<Client *>			 getOperators() const;
+	Client						  *getCreator();
+	unsigned int					 getUserLimit() const;
+	std::string						 getPassword() const;
 
-	bool isOperator(Client *c);
 	bool isInitialized();
 	bool validatePassword(std::string password);
 	void setPassword(std::string password);
@@ -59,7 +65,6 @@ class Channel {
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
-	void addOperator(Client *c);
 	void removeOperator(Client *c);
 	void promoteOperator(std::string clientNickname);
 	void demoteOperator(std::string clientNickname);
@@ -69,17 +74,18 @@ class Channel {
 	void initialize(std::string name, Client *op);
 
 	private:
-	Client				 *creator;
+	Client			   *creator;
 	std::string			  name;
 	std::string			  topic;
 	std::string			  host;
 	std::string			  password;
 	std::vector<Client *> operators;
-	std::vector<Client *> clients;
-	std::set<char>		  modes;
-	std::string			  banMask;
-	unsigned int		  userLimit;
-	bool				  initialized;
+	// std::vector<Client *> clients;
+	std::set<char>					 modes;
+	std::string						 banMask;
+	unsigned int					 userLimit;
+	bool							 initialized;
+	std::map<Client &, unsigned int> clients;
 };
 
 #endif

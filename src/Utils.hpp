@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "Channel.hpp"
 #include "Client.hpp"
 
 #define P_CONTINUE 0
