@@ -19,7 +19,7 @@ std::string Channel::getTopic() const { return topic; }
 void Channel::setInitialized(bool value) { initialized = value; }
 bool Channel::isInitialized() { return initialized; }
 
-std::map<Client *, unsigned int> Channel::getClients() const { return clients; }
+std::map<Client *, unsigned int> &Channel::getClients() { return clients; }
 
 void Channel::setName(std::string name) { this->name = name; }
 void Channel::setTopic(std::string topic) { this->topic = topic; };

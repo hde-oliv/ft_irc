@@ -46,11 +46,12 @@ class Channel {
 	Channel(void);
 	~Channel(void);
 
-	std::string						 getName() const;
-	std::string						 getTopic() const;
-	std::map<Client *, unsigned int> getClients() const;
-	Client						  *getCreator();
-	unsigned int					 getUserLimit() const;
+	std::string	 getName() const;
+	std::string	 getTopic() const;
+	Client	   *getCreator();
+	unsigned int getUserLimit() const;
+
+	std::map<Client *, unsigned int> &getClients();
 
 	bool isInitialized();
 	bool evalPassword(std::string psw);
