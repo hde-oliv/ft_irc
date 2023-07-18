@@ -267,7 +267,11 @@ void Server::channelMode(pollfd p, Command &t) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
 
-	Channel &ch = it->second;
+	Channel								   &ch = it->second;
+	std::map<Client *, unsigned int>::iterator cli =
+		ch.getClientByNick(c->getNickname());
+
+	if (!(cli->second & USER_OPERATOR)) return;
 
 	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
 		return (c->setSendData(unknownmode(p, t.args[0][1])));
@@ -295,7 +299,8 @@ void Server::channelMode(pollfd p, Command &t) {
 		}
 	}
 
-	std::size_t argIndex = 2;
+	std::size_t argIndex  = 2;
+	bool		userParam = false;
 	// uses first argument after modes t.args[2]
 
 	modeIt = cmdModes.find('l');
@@ -315,26 +320,26 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (modeIt != cmdModes.end()) {
 		if (t.args.size() - 1 < argIndex)
 			return (c->setSendData(needmoreparams(p, "MODE")));
-		if (on) {
-			ch.promoteOperator(t.args[argIndex]);
-		} else {
-			ch.demoteOperator(t.args[argIndex]);
-		}
+		ch.setOperator(t.args[argIndex], on);
+		userParam = true;
 	}
 
 	modeIt = cmdModes.find('v');
 	if (modeIt != cmdModes.end()) {
 		if (t.args.size() - 1 < argIndex)
 			return (c->setSendData(needmoreparams(p, "MODE")));
-		// execute l!
-		argIndex++;
+		ch.setMuted(t.args[argIndex], on);
+		userParam = true;
 	}
 
+	if (userParam) {
+		argIndex++;
+	}
 	modeIt = cmdModes.find('b');
 	if (modeIt != cmdModes.end()) {
 		if (t.args.size() - 1 < argIndex)
 			return (c->setSendData(needmoreparams(p, "MODE")));
-		// execute l!
+		// set channel banMask
 		argIndex++;
 	}
 

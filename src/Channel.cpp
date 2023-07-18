@@ -30,9 +30,9 @@ void Channel::setPassword(std::string password) { this->password = password; }
 
 void Channel::removeClient(Client *c) { clients.erase(c); }
 
-void Channel::removeOperator(Client *c) {
-	(void)std::remove(operators.begin(), operators.end(), c);
-}
+// void Channel::removeOperator(Client *c) {
+// 	(void)std::remove(operators.begin(), operators.end(), c);
+// }
 
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 	std::map<Client *, unsigned int>::iterator it = clients.begin();
@@ -73,13 +73,37 @@ void Channel::initialize(std::string name, Client *op) {
 void		 Channel::setUserLimit(unsigned int limit) { userLimit = limit; };
 unsigned int Channel::getUserLimit() const { return userLimit; };
 
-void Channel::promoteOperator(std::string clientNickname) {
-	std::cout << "(TODO)promote " << clientNickname << "to operator of " << name
-			  << std::endl;
-}
+void Channel::setOperator(std::string clientNickname, bool newValue) {
+	std::map<Client *, unsigned int>::iterator it =
+		getClientByNick(clientNickname);
+	if (it != clients.end()) {
+		if (newValue)
+			it->second |= USER_OPERATOR;
+		else
+			it->second &= (~USER_OPERATOR);
+	}
+};
 
-void Channel::demoteOperator(std::string clientNickname) {
-	std::cout << "(TODO)demote " << clientNickname << "to regular user of "
-			  << name << std::endl;
-}
+void Channel::setMuted(std::string clientNickname, bool newValue) {
+	std::map<Client *, unsigned int>::iterator it =
+		getClientByNick(clientNickname);
+	if (it != clients.end()) {
+		if (newValue)
+			it->second |= USER_MUTED;
+		else
+			it->second &= (~USER_MUTED);
+	}
+};
 bool Channel::evalPassword(std::string psw) { return (password == psw); }
+
+std::map<Client *, unsigned int>::iterator Channel::getClientByNick(
+	std::string clientNickname) {
+	std::map<Client *, unsigned int>::iterator it = clients.begin();
+	while (it != clients.end()) {
+		if (it->first->getNickname() == clientNickname) return (it);
+		it++;
+	}
+	return (it);
+};
+
+void Channel::setBanMask(std::string newBanMask) { banMask = newBanMask; };
