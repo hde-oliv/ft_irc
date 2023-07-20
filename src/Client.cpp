@@ -69,6 +69,9 @@ void Client::resetAllData() {
 
 void Client::resetSendData(int len) { sendData = sendData.substr(len); }
 void Client::resetReadData() { readData.clear(); }
+
+std::vector<Channel *> &Client::getChannels() { return channels; }
+
 /*
 bool operator<(const Client& lhs, const Client& rhs) {
 	return lhs.getFd() < rhs.getFd();

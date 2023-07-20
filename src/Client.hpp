@@ -43,19 +43,20 @@ class Client {
 	void resetReadData();
 	void resetSendData(int len);
 
-	int			getFd() const;
-	int			getRegistration() const;
-	bool		getWelcome() const;
-	bool		getKnowPassword() const;
-	bool		getOp() const;
-	bool		getToDisconnect() const;
-	std::string getNickname() const;
-	std::string getUsername() const;
-	std::string getHostname() const;
-	std::string getServername() const;
-	std::string getRealname() const;
-	std::string getReadData() const;
-	std::string getSendData() const;
+	int						getFd() const;
+	int						getRegistration() const;
+	bool					getWelcome() const;
+	bool					getKnowPassword() const;
+	bool					getOp() const;
+	bool					getToDisconnect() const;
+	std::string				getNickname() const;
+	std::string				getUsername() const;
+	std::string				getHostname() const;
+	std::string				getServername() const;
+	std::string				getRealname() const;
+	std::string				getReadData() const;
+	std::string				getSendData() const;
+	std::vector<Channel *> &getChannels();
 
 	std::string getClientPrefix();
 
@@ -74,7 +75,7 @@ class Client {
 	std::string readData;
 	std::string sendData;
 
-	std::vector<Channel*> channels;
+	std::vector<Channel *> channels;
 };
 /*
 bool operator<(const Client& lhs, const Client& rhs);

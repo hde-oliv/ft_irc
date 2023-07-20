@@ -198,6 +198,7 @@ void Server::who(pollfd p, Command &t) {
 	// NOTE: Not defined in RFC
 	if (t.args.size() < 1) {
 		c->setSendData(needmoreparams(p, "WHO"));
+		return;
 	}
 
 	std::map<std::string, Channel>::iterator it;
@@ -215,8 +216,27 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	(void)p;
-	(void)t;
+	Client		   *c = &clients[p.fd];
+	std::stringstream ss;
+
+	// NOTE: Not defined in RFC
+	if (t.args.size() < 1) {
+		c->setSendData(needmoreparams(p, "WHOIS"));
+		return;
+	}
+
+	std::map<int, Client>::iterator it;
+
+	for (it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second).getNickname() == t.args[0]) {
+			c->setSendData(whoisreply(p, &(it->second)));
+			return;
+		}
+	}
+
+	// TODO: Check later what other servers respond when the Channel parameter
+	// does not exist
+	c->setSendData(nosuchserver(p, t.args[0]));
 }
 
 void Server::whowas(pollfd p, Command &t) {
@@ -265,6 +285,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
+
 	Channel								   &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());

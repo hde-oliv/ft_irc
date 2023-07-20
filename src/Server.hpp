@@ -92,6 +92,7 @@ class Server {
 	std::string notopic(pollfd p, Channel *ch);
 	std::string namreply(pollfd p, Channel *ch);
 	std::string whoreply(pollfd p, Channel *ch);
+	std::string whoisreply(pollfd p, Client *ch);
 	std::string nosuchserver(pollfd p, std::string name);
 	std::string unknownmode(pollfd p, char c);
 	std::string badchannelkey(pollfd p, std::string channel);
