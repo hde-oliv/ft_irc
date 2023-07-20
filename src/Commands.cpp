@@ -285,7 +285,6 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-
 	Channel								   &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
