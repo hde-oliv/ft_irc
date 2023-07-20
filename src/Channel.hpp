@@ -40,16 +40,19 @@
 */
 #include <set>
 #include <vector>
+
 class Client;
+
 class Channel {
 	public:
 	Channel(void);
 	~Channel(void);
 
-	std::string	 getName() const;
-	std::string	 getTopic() const;
-	Client	   *getCreator();
-	unsigned int getUserLimit() const;
+	std::string			   getName() const;
+	std::string			   getTopic() const;
+	Client				  *getCreator();
+	unsigned int		   getUserLimit() const;
+	std::vector<Client *> &getOperators();
 
 	std::map<Client *, unsigned int> &getClients();
 
@@ -79,12 +82,12 @@ class Channel {
 	void initialize(std::string name, Client *op);
 
 	private:
-	Client	   *creator;
-	std::string name;
-	std::string topic;
-	std::string host;
-	std::string password;
-	// std::vector<Client *>			 operators;
+	Client							*creator;
+	std::string						 name;
+	std::string						 topic;
+	std::string						 host;
+	std::string						 password;
+	std::vector<Client *>			 operators;
 	std::set<char>					 modes;
 	std::string						 banMask;
 	unsigned int					 userLimit;
