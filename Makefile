@@ -1,7 +1,7 @@
 SRC_DIR	:=	src
 OBJ_DIR	:=	obj
 
-SRC		:=	Server.cpp main.cpp Utils.cpp Channel.cpp Client.cpp Commands.cpp Responses.cpp
+SRC		:=	Server.cpp main.cpp Utils.cpp Channel.cpp Client.cpp Commands.cpp Responses.cpp ServerUtils.cpp
 SRCS	:=	$(addprefix $(SRC_DIR)/,$(SRC))
 OBJS	:=	$(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 CC		:=	c++

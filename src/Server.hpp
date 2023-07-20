@@ -30,6 +30,8 @@ class Server {
 	~Server(void);
 	void startServer();
 
+	bool evalChanMode(pollfd p, std::vector<std::string> args);
+
 	private:
 	void	setupSocket();
 	void	clientEventHandling();
