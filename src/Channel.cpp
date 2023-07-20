@@ -52,11 +52,13 @@ void Channel::setCreator(Client *c) { creator = c; };
 
 Client *Channel::getCreator() { return creator; };
 
-void Channel::toggleMode(char mode, bool on) {
+bool Channel::toggleMode(char mode, bool on) {
+	std::size_t before = modes.size();
 	if (on)
 		modes.insert(mode);
 	else
 		modes.erase(mode);
+	return !(before == modes.size());
 }
 
 void Channel::initialize(std::string name, std::string password, Client *op) {
@@ -109,3 +111,26 @@ std::map<Client *, unsigned int>::iterator Channel::getClientByNick(
 };
 
 void Channel::setBanMask(std::string newBanMask) { banMask = newBanMask; };
+std::string Channel::getBanMask() { return banMask; };
+
+/*
+Returns <channel> <mode>
+*/
+std::string Channel::getStrModes() {
+	std::string modeStr = "";
+
+	if (modes.size() > 0) {
+		modeStr += "+";
+		std::set<char>::iterator it = modes.begin();
+		while (it != modes.end()) {
+			modeStr += (*it);
+			it++;
+		}
+		// modeStr += " ";
+	}
+	// std::ostringstream os;
+	// os << getUserLimit();
+	// modeStr += os.str() + " ";
+	// modeStr += getBanMask();
+	return (modeStr);
+};

@@ -12,8 +12,8 @@
 bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 	Client *cli = &clients[p.fd];
 
-	std::string toggleMode	   = "psitnmk";
-	std::string cmdsWithParams = "olbv";
+	std::string toggleMode	   = "psitnm";
+	std::string cmdsWithParams = "olbvk";
 	std::string cmdPrefix	   = "+-";
 	std::string allModes	   = toggleMode + cmdsWithParams;
 

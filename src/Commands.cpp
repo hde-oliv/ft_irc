@@ -277,8 +277,8 @@ void Server::ping(pollfd p, Command &t) {
 void Server::channelMode(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
-	std::string								 toggleMode		= "psitnmk";
-	std::string								 cmdsWithParams = "olbv";
+	std::string								 toggleMode		= "psitnm";
+	std::string								 cmdsWithParams = "olbvk";
 	std::string								 cmdPrefix		= "+-";
 	std::map<std::string, Channel>::iterator it = getChannelByName(t.args[0]);
 
@@ -294,67 +294,77 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
 		return (c->setSendData(unknownmode(p, t.args[0][1])));
 
-	bool on = t.args[1][0] == '+';
+	bool		on = t.args[1][0] == '+';
+	std::string modesChanged;
+	modesChanged.insert(modesChanged.begin(), t.args[1][0]);
 	t.args[1].erase(0, 1);
 
 	std::set<char> chFlags;
 	char		   usrFlag = 0;
 	while (t.args[1].size() > 0) {
 		if (cmdsWithParams.find(t.args[1][0]) != std::string::npos) {
-			chFlags.insert(t.args[1][0]);
-		} else {
 			usrFlag = t.args[1][0];
+		} else {
+			chFlags.insert(t.args[1][0]);
 		}
 		t.args[1].erase(0, 1);
 	}
 
 	// handle toggles
 	std::set<char>::iterator modeIt;
-	for (std::size_t i; i < toggleMode.size(); i++) {
+	for (std::size_t i = 0; i < toggleMode.size(); i++) {
 		modeIt = chFlags.find(toggleMode.at(i));
 		if (modeIt != chFlags.end()) {
-			ch.toggleMode(*modeIt, on);
+			if (ch.toggleMode(*modeIt, on)) {
+				modesChanged += *modeIt;
+			}
 		}
 	}
 
 	// handle non-toggle
+	std::stringstream ss;
+	int				  lim = 0;
 	switch (usrFlag) {
-		case 'l':
-			/* limit channel */
+		case 'l':  // this is not affected by + -
+			ss << t.args[2];
+			if (!(ss >> lim) || lim <= 0) {
+				return (c->setSendData(needmoreparams(p, "MODE")));
+			}
+			ch.setUserLimit(lim);
 			break;
 		case 'o':
-			/* set Operator */
+			ch.setOperator(t.args[2], on);
 			break;
 		case 'b':
-			/* ban mask */
+			if (on)
+				ch.setBanMask(t.args[2]);
+			else
+				ch.setBanMask("");
 			break;
 		case 'v':
-			/* mude */
+			ch.setMuted(t.args[2], on);
 			break;
-
 		default:
 			break;
 	}
+	// temp value to return
+	// modesChanged
 
-	// uses first argument after modes t.args[2]
+	// response from common irc server
+	// :hcduller!~hcduller@Rizon-1585D411.dsl.telesp.net.br MODE #semsenhahc +ti
+	// nick!user@host
 
+	// return ch.broadcast(c, channelmodeis(p, ch.getName()), true);
+	return c->setSendData(channelmodeis(p, ch.getName(), modesChanged));
 	/*
 	Parameters:
 		<channel>
-		o l b v
-		p s i t n m k
+		o l b v k
+		p s i t n m
 		[<limit>]
 		[<user>]
 		[<ban mask>]
-	std::vector<char> cmdModes;
-	while (t.args[1].size() > 0) {	// do not execute USER cmds
-		cmdModes.push_back(t.args[1][0]);
-		t.args[0].erase(0, 1);
-		if (toggleMode.find(cmdModes.back()) != std::string::npos) {
-			ch.toggleMode(cmdModes.back(), on);
-			cmdModes.pop_back();
-		}
-	}
+		[key]
 	*/
 }
 

@@ -1,7 +1,9 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
 #include "Client.hpp"
@@ -50,7 +52,7 @@ class Channel {
 
 	std::string			   getName() const;
 	std::string			   getTopic() const;
-	Client				  *getCreator();
+	Client				*getCreator();
 	unsigned int		   getUserLimit() const;
 	std::vector<Client *> &getOperators();
 
@@ -59,8 +61,8 @@ class Channel {
 	std::map<Client *, unsigned int>::iterator getClientByNick(
 		std::string clientNickname);
 
-	std::pair<Client *, unsigned int &> getClientByNick2(
-		std::string clientNickname);
+	std::string getStrModes();
+	std::string getBanMask();
 
 	bool isInitialized();
 	bool evalPassword(std::string psw);
@@ -76,13 +78,13 @@ class Channel {
 	void setOperator(std::string clientNickname, bool newValue);
 	void setMuted(std::string clientNickname, bool newValue);
 	void broadcast(Client *sender, std::string message, bool toSend);
-	void toggleMode(char mode, bool on);
+	bool toggleMode(char mode, bool on);
 	void setBanMask(std::string newBanMask);
 	void initialize(std::string name, std::string password, Client *op);
 	void initialize(std::string name, Client *op);
 
 	private:
-	Client							*creator;
+	Client						  *creator;
 	std::string						 name;
 	std::string						 topic;
 	std::string						 host;

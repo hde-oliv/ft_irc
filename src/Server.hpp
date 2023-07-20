@@ -97,6 +97,9 @@ class Server {
 	std::string unknownmode(pollfd p, char c);
 	std::string badchannelkey(pollfd p, std::string channel);
 
+	std::string channelmodeis(pollfd p, std::string channel,
+							  std::string modesStr);
+
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);
 	bool validChannelName(std::string name);
