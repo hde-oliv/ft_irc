@@ -29,6 +29,7 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 		return false;
 	}
 
+	char prefix = modes.at(0);
 	modes.erase(0, 1);
 
 	std::pair<bool, unsigned int> togglePair = std::make_pair(false, 0);
@@ -54,15 +55,26 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 	if (togglePair.first) return true;
 
 	if (paramPair.first) {
+		// if (paramPair.second == 0 && modes.at(0) == 'b')
+		// 	return;	 // this should return the ban list! for the specific issue
+		// 			 // user in the appropriate place
+		if (args.size() < 3 && modes.at(0) == 'b') {
+			return true;
+		}
+		if (prefix == '-' && modes.at(0) == 'k') {
+			return true;
+		}
 		if (paramPair.second > 1 || args.size() < 3) {
 			cli->setSendData(
-				needmoreparams(p, "MODE"));	 // This error code might need to be
-											 // changed
+				needmoreparams(p, "MODE"));	 // This error code might need
+											 // to be changed
 			return false;
 		}
 		return true;
 	}
-	cli->setSendData(needmoreparams(p, "MODE"));
+	cli->setSendData(
+		needmoreparams(p, "MODE"));	 // TODO: the correct return here is a list
+									 // of modes: channelmodeis !
 	return false;
 	// args 0 = composition of '+' | '-' and { p | s | i | t | n | m | k } | one
 	// of [ o | l | b | v ] args 1 is the parameter needed by o | l | b | v

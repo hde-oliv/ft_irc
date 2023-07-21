@@ -27,6 +27,7 @@ void Channel::setTopic(std::string topic) { this->topic = topic; };
 void Channel::addClient(Client *c) { clients.insert(std::make_pair(c, 0)); }
 
 void Channel::setPassword(std::string password) { this->password = password; }
+void Channel::removePassword() { this->password = ""; };
 
 void Channel::removeClient(Client *c) { clients.erase(c); }
 
@@ -77,7 +78,7 @@ void Channel::initialize(std::string name, Client *op) {
 void		 Channel::setUserLimit(unsigned int limit) { userLimit = limit; };
 unsigned int Channel::getUserLimit() const { return userLimit; };
 
-void Channel::setOperator(std::string clientNickname, bool newValue) {
+bool Channel::setOperator(std::string clientNickname, bool newValue) {
 	std::map<Client *, unsigned int>::iterator it =
 		getClientByNick(clientNickname);
 	if (it != clients.end()) {
@@ -85,17 +86,19 @@ void Channel::setOperator(std::string clientNickname, bool newValue) {
 			it->second |= USER_OPERATOR;
 		else
 			it->second &= (~USER_OPERATOR);
+		return true;
 	}
+	return (false);
 };
 
-void Channel::setMuted(std::string clientNickname, bool newValue) {
+void Channel::setSpeaker(std::string clientNickname, bool newValue) {
 	std::map<Client *, unsigned int>::iterator it =
 		getClientByNick(clientNickname);
 	if (it != clients.end()) {
 		if (newValue)
-			it->second |= USER_MUTED;
+			it->second |= USER_SPEAKER;
 		else
-			it->second &= (~USER_MUTED);
+			it->second &= (~USER_SPEAKER);
 	}
 };
 bool Channel::evalPassword(std::string psw) { return (password == psw); }

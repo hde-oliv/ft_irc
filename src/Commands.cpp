@@ -289,7 +289,11 @@ void Server::channelMode(pollfd p, Command &t) {
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 
-	if (!(cli->second & USER_OPERATOR)) return;
+	if (!(cli->second & USER_OPERATOR)) {
+		// /mode channel +o hcduller (send by a non _USER_OPERATOR)
+		// :irc.uworld.se 482 hcduller #semsenhahc :You're not channel operator
+		return;
+	}
 
 	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
 		return (c->setSendData(unknownmode(p, t.args[0][1])));
@@ -331,25 +335,48 @@ void Server::channelMode(pollfd p, Command &t) {
 				return (c->setSendData(needmoreparams(p, "MODE")));
 			}
 			ch.setUserLimit(lim);
+			modesChanged += "l " + t.args[2];
 			break;
 		case 'o':
-			ch.setOperator(t.args[2], on);
+			if (ch.setOperator(t.args[2], on)) {
+				modesChanged += "o " + t.args[2];
+			} else {
+				return;
+			}
+
 			break;
 		case 'b':
-			if (on)
-				ch.setBanMask(t.args[2]);
-			else
-				ch.setBanMask("");
+			if (on) {
+				if (t.args.size() > 2) {
+					ch.setBanMask(t.args[2]);  // must be reworked, banMask must
+											   // be a vector, map or set.
+					modesChanged += "b " + t.args[2];
+				} else {
+					return;	 // sould return list of banMasks
+				}
+			} else {
+				return;	 // sould return list of banMasks
+			}
 			break;
 		case 'v':
-			ch.setMuted(t.args[2], on);
+			ch.setSpeaker(t.args[2], on);
+			break;
+		case 'k':
+			if (on) {
+				ch.setPassword(t.args[2]);
+				modesChanged += "k " + t.args[2];
+			} else {
+				ch.removePassword();
+				modesChanged += "k *";
+			}
 			break;
 		default:
 			break;
 	}
 
 	if (modesChanged.size() > 1)
-		return c->setSendData(usermodeis(ch, c, modesChanged));
+		return ch.broadcast(c, usermodeis(ch, c, modesChanged), true);
+	// return c->setSendData(usermodeis(ch, c, modesChanged));
 	/*
 	Parameters:
 		<channel>

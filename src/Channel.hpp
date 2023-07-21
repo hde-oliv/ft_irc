@@ -19,7 +19,7 @@
 #define USER_NOTICES 0x2
 #define USER_WALLOP 0x4
 #define USER_OPERATOR 0x8
-#define USER_MUTED 0x16
+#define USER_SPEAKER 0x16
 /*
 	Channel modes
 	o - give/take channel operator privileges;
@@ -75,8 +75,9 @@ class Channel {
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
-	void setOperator(std::string clientNickname, bool newValue);
-	void setMuted(std::string clientNickname, bool newValue);
+	void removePassword();
+	bool setOperator(std::string clientNickname, bool newValue);
+	void setSpeaker(std::string clientNickname, bool newValue);
 	void broadcast(Client *sender, std::string message, bool toSend);
 	bool toggleMode(char mode, bool on);
 	void setBanMask(std::string newBanMask);
