@@ -42,6 +42,7 @@ class Client {
 	void resetAllData();
 	void resetReadData();
 	void resetSendData(int len);
+	void addChannel(Channel *ch);
 
 	int						getFd() const;
 	int						getRegistration() const;

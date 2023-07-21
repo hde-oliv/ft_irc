@@ -35,8 +35,6 @@ void Channel::removeClient(Client *c) { clients.erase(c); }
 // 	(void)std::remove(operators.begin(), operators.end(), c);
 // }
 
-std::vector<Client *> &Channel::getOperators() { return operators; };
-
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 	std::map<Client *, unsigned int>::iterator it = clients.begin();
 

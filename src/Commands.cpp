@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -104,7 +104,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check later for ERR_BADCHANMASK
@@ -149,7 +149,8 @@ void Server::join(pollfd p, Command &t) {
 			return c->setSendData(badchannelkey(p, ch->getName()));
 	}
 
-	ch->addClient(c);
+	ch->addClient(c);	// TODO: Implement later to remove client
+	c->addChannel(ch);	// TODO: Implement later to remove channel
 
 	// TODO: after implementing BANS, this line should check for bans!
 	ss << c->getClientPrefix();
@@ -192,7 +193,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -216,7 +217,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -245,7 +246,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -262,7 +263,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -285,7 +286,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel								   &ch = it->second;
+	Channel									  &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 

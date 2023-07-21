@@ -15,11 +15,11 @@
 #define CHANNEL_MODES "opsitnmlbvk"
 #define USER_MODES "iswov"
 
-#define USER_INVISIBLE 0x1
-#define USER_NOTICES 0x2
-#define USER_WALLOP 0x4
-#define USER_OPERATOR 0x8
-#define USER_SPEAKER 0x16
+#define USER_INVISIBLE 0b1
+#define USER_NOTICES 0b10
+#define USER_WALLOP 0b100
+#define USER_OPERATOR 0b1000
+#define USER_SPEAKER 0b10000
 /*
 	Channel modes
 	o - give/take channel operator privileges;
@@ -50,11 +50,10 @@ class Channel {
 	Channel(void);
 	~Channel(void);
 
-	std::string			   getName() const;
-	std::string			   getTopic() const;
-	Client				*getCreator();
-	unsigned int		   getUserLimit() const;
-	std::vector<Client *> &getOperators();
+	std::string	 getName() const;
+	std::string	 getTopic() const;
+	Client		*getCreator();
+	unsigned int getUserLimit() const;
 
 	std::map<Client *, unsigned int> &getClients();
 
@@ -85,12 +84,12 @@ class Channel {
 	void initialize(std::string name, Client *op);
 
 	private:
-	Client						  *creator;
-	std::string						 name;
-	std::string						 topic;
-	std::string						 host;
-	std::string						 password;
-	std::vector<Client *>			 operators;
+	Client	   *creator;
+	std::string name;
+	std::string topic;
+	std::string host;
+	std::string password;
+	// std::vector<Client *>			 operators;
 	std::set<char>					 modes;
 	std::string						 banMask;
 	unsigned int					 userLimit;
