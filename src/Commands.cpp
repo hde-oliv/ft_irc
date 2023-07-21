@@ -394,9 +394,9 @@ void Server::mode(pollfd p, Command &t) {
 	std::string ch_prefix = CHANNEL_PREFIX;
 
 	// identify if command applies to channel or client
-	if (t.args.size() < 2)
-		return c->setSendData(
-			needmoreparams(p, "MODE"));	 // ERR_NEEDMOREPARAMS 461
+	if (t.args.size() < 2) {
+		return c->setSendData(channelmodeis(p, t.args[0]));
+	}
 
 	if (ch_prefix.find(t.args[0].at(0))) {
 		if (evalChanMode(p, t.args)) {

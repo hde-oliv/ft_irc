@@ -371,10 +371,13 @@ std::string Server::channelmodeis(pollfd p, std::string channel) {
 	// :hcduller!~hcduller@Rizon-1585D411.dsl.telesp.net.br MODE #semsenhahc +ti
 	// nick!user@host
 
-	std::stringstream ss;
-	Client		   *cl = &clients[p.fd];
-
-	Channel *ch = &(getChannelByName(channel)->second);
+	std::stringstream						 ss;
+	Client								  *cl	   = &clients[p.fd];
+	std::map<std::string, Channel>::iterator ch_it = getChannelByName(channel);
+	if (ch_it == channels.end()) {
+		return nosuchchannel(p, channel);
+	}
+	Channel *ch = &(ch_it->second);
 
 	ss << ":localhost 324";
 	ss << " " << cl->getNickname();
