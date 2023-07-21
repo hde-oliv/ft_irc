@@ -352,22 +352,35 @@ std::string Server::unknownmode(pollfd p, char c) {
 
 	return ss.str();
 }
-std::string Server::channelmodeis(pollfd p, std::string channel,
-								  std::string modesStr) {
+// 221	RPL_UMODEIS				"<user mode string>"
+
+// Returns the complete mode information for a given channel
+std::string Server::usermodeis(Channel &ch, Client *cli, std::string modeStr) {
+	std::stringstream ss;
+
+	ss << ":" << cli->getNickname();
+	ss << " MODE";
+	ss << " " << ch.getName();
+	ss << " " << modeStr;
+	ss << "\r\n";
+	return ss.str();
+}
+// this function is used for MODE without flags
+std::string Server::channelmodeis(pollfd p, std::string channel) {
 	// 324	RPL_CHANNELMODEIS		"<channel> <mode> <mode params>"
 	// :hcduller!~hcduller@Rizon-1585D411.dsl.telesp.net.br MODE #semsenhahc +ti
 	// nick!user@host
+
 	std::stringstream ss;
 	Client		   *cl = &clients[p.fd];
 
 	Channel *ch = &(getChannelByName(channel)->second);
 
-	ss << ":" << cl->getNickname();
-	ss << "!" << cl->getUsername();
-	ss << "@" << cl->getHostname();
+	ss << ":localhost 324";
+	ss << " " << cl->getNickname();
 	ss << " " << ch->getName();
-	ss << " " << modesStr;
+	ss << " " << ch->getStrModes();
 	ss << "\r\n";
-
+	// return ":localhost MODE #semsenha +ti \r\n";
 	return ss.str();
 }

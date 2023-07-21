@@ -347,15 +347,9 @@ void Server::channelMode(pollfd p, Command &t) {
 		default:
 			break;
 	}
-	// temp value to return
-	// modesChanged
 
-	// response from common irc server
-	// :hcduller!~hcduller@Rizon-1585D411.dsl.telesp.net.br MODE #semsenhahc +ti
-	// nick!user@host
-
-	// return ch.broadcast(c, channelmodeis(p, ch.getName()), true);
-	return c->setSendData(channelmodeis(p, ch.getName(), modesChanged));
+	if (modesChanged.size() > 1)
+		return c->setSendData(usermodeis(ch, c, modesChanged));
 	/*
 	Parameters:
 		<channel>
