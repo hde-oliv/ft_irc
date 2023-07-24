@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -104,7 +104,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check later for ERR_BADCHANMASK
@@ -193,7 +193,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -217,7 +217,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -246,7 +246,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -263,7 +263,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -286,7 +286,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel									  &ch = it->second;
+	Channel								   &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 
@@ -377,18 +377,33 @@ void Server::channelMode(pollfd p, Command &t) {
 
 	if (modesChanged.size() > 1)
 		return ch.broadcast(c, usermodeis(ch, c, modesChanged), true);
-	// return c->setSendData(usermodeis(ch, c, modesChanged));
-	/*
-	Parameters:
-		<channel>
-		o l b v k
-		p s i t n m
-		[<limit>]
-		[<user>]
-		[<ban mask>]
-		[key]
-	*/
 }
+void Server::userMode(pollfd p, Command &t) {
+	std::string inputModes = t.args[1];
+	std::string changes;
+
+	Client *c = &clients[p.fd];
+
+	bool on = inputModes.at(0) == '+' ? true : false;
+	changes.append(1, inputModes.at(0));
+
+	std::set<char> flags;
+	size_t		   i = 1;
+	while (i < inputModes.size()) {
+		flags.insert(inputModes.at(i));
+		i++;
+	}
+
+	std::set<char>::iterator it = flags.begin();
+	while (it != flags.end()) {
+		if (c->setMode(*it, on)) {
+			changes.append(1, *it);
+		}
+		it++;
+	}
+	if (changes.length() == 1) return;
+	return c->setSendData(usermodeis(c, changes));
+};
 
 void Server::mode(pollfd p, Command &t) {
 	Client	   *c		  = &clients[p.fd];
@@ -396,7 +411,12 @@ void Server::mode(pollfd p, Command &t) {
 
 	// identify if command applies to channel or client
 	if (t.args.size() < 2) {
-		return c->setSendData(channelmodeis(p, t.args[0]));
+		if (ch_prefix.find(t.args[0].at(0)))
+			return c->setSendData(channelmodeis(p, t.args[0]));
+		else
+			return c->setSendData(
+				channelmodeis(p, t.args[0]));  // TODO this should return MODE
+											   // flags for the user!
 	}
 
 	if (ch_prefix.find(t.args[0].at(0))) {
@@ -404,6 +424,8 @@ void Server::mode(pollfd p, Command &t) {
 			channelMode(p, t);
 		}
 	} else {
+		if (evalUserMode(p, t.args)) {
+		}
 		/*
 			Parameters: <nickname> {[+|-]|i|w|s|o}
 		*/

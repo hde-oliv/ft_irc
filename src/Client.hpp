@@ -39,6 +39,7 @@ class Client {
 	void setUsername(std::string name);
 	void setRealname(std::string name);
 	void setNickname(std::string name);
+	bool setMode(char mode, bool on);
 	void setRegistration(int flag);
 	void setOp(bool value);
 	void setKnowPassword(bool value);

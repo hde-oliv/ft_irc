@@ -74,6 +74,7 @@ class Server {
 	void privmsg(pollfd p, Command &t);
 
 	void channelMode(pollfd p, Command &t);
+	void userMode(pollfd p, Command &t);
 
 	void recvLoop(pollfd p);
 
@@ -97,9 +98,12 @@ class Server {
 	std::string nosuchserver(pollfd p, std::string name);
 	std::string unknownmode(pollfd p, char c);
 	std::string badchannelkey(pollfd p, std::string channel);
+	std::string usersdontmatch(Client *cli);
+	std::string unknownmodeflag(Client *cli);
 
 	std::string channelmodeis(pollfd p, std::string channel);
 	std::string usermodeis(Channel &ch, Client *cli, std::string modeStr);
+	std::string usermodeis(Client *cli, std::string modeStr);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

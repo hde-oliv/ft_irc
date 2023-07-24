@@ -75,9 +75,13 @@ std::vector<Channel *> &Client::getChannels() { return channels; }
 void Client::addChannel(Channel *ch) { channels.push_back(ch); };
 
 bool Client::setOperator(bool on) {
-	unsigned int reverseFlag = ~CLI_OPER;
-	unsigned int before		 = flags;
-	flags					 = flags && reverseFlag;
+	unsigned int before = flags;
+
+	if (on) {
+		flags |= CLI_OPER;
+	} else {
+		flags = flags && ~CLI_OPER;
+	}
 	if (flags == before) {
 		return false;
 	}
@@ -85,9 +89,13 @@ bool Client::setOperator(bool on) {
 };
 
 bool Client::setInvisible(bool on) {
-	unsigned int reverseFlag = ~CLI_INV;
-	unsigned int before		 = flags;
-	flags					 = flags && reverseFlag;
+	unsigned int before = flags;
+
+	if (on) {
+		flags |= CLI_INV;
+	} else {
+		flags = flags && ~CLI_INV;
+	}
 	if (flags == before) {
 		return false;
 	}
@@ -95,9 +103,13 @@ bool Client::setInvisible(bool on) {
 };
 
 bool Client::setNotice(bool on) {
-	unsigned int reverseFlag = ~CLI_NOTICE;
-	unsigned int before		 = flags;
-	flags					 = flags && reverseFlag;
+	unsigned int before = flags;
+
+	if (on) {
+		flags |= CLI_NOTICE;
+	} else {
+		flags = flags && ~CLI_NOTICE;
+	}
 	if (flags == before) {
 		return false;
 	}
@@ -105,13 +117,37 @@ bool Client::setNotice(bool on) {
 };
 
 bool Client::setWallop(bool on) {
-	unsigned int reverseFlag = ~CLI_WALLOP;
-	unsigned int before		 = flags;
-	flags					 = flags && reverseFlag;
+	unsigned int before = flags;
+
+	if (on) {
+		flags |= CLI_WALLOP;
+	} else {
+		flags = flags && ~CLI_WALLOP;
+	}
 	if (flags == before) {
 		return false;
 	}
 	return true;
+};
+bool Client::setMode(char mode, bool on) {
+	bool changed = false;
+	switch (mode) {
+		case 'i':
+			changed = this->setInvisible(on);
+			break;
+		case 'w':
+			changed = this->setWallop(on);
+			break;
+		case 's':
+			changed = this->setNotice(on);
+			break;
+		case 'o':
+			changed = this->setOperator(on);
+			break;
+		default:
+			break;
+	}
+	return changed;
 };
 
 /*

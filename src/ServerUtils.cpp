@@ -79,4 +79,28 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 	// args 0 = composition of '+' | '-' and { p | s | i | t | n | m | k } | one
 	// of [ o | l | b | v ] args 1 is the parameter needed by o | l | b | v
 }
-bool Server::evalUserMode(pollfd p, std::vector<std::string> args) {}
+bool Server::evalUserMode(pollfd p, std::vector<std::string> args) {
+	Client *c = &clients[p.fd];
+
+	if (!(toIrcUpperCase(c->getNickname()) == toIrcUpperCase(args[0]))) {
+		c->setSendData(usersdontmatch(c));
+		return false;
+	}
+	std::string allowedFlags = "iwso";
+	if (args[1].at(0) != '+' && args[1].at(0) != '-') {
+		c->setSendData(unknownmodeflag(c));
+		return false;
+	}
+	if (args[1].size() < 2) {
+		return false;
+	}
+	size_t i = 1;
+	while (i < args[1].size()) {
+		if (allowedFlags.find(args[1].at(i), 0) == std::string::npos) {
+			c->setSendData(unknownmodeflag(c));
+			return false;
+		}
+		i++;
+	}
+	return true;
+}
