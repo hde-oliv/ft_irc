@@ -74,7 +74,7 @@ std::vector<Channel *> &Client::getChannels() { return channels; }
 
 void Client::addChannel(Channel *ch) { channels.push_back(ch); };
 
-bool Client::setOperator(Client *issuer, bool on) {
+bool Client::setOperator(bool on) {
 	unsigned int reverseFlag = ~CLI_OPER;
 	unsigned int before		 = flags;
 	flags					 = flags && reverseFlag;
@@ -84,7 +84,7 @@ bool Client::setOperator(Client *issuer, bool on) {
 	return true;
 };
 
-bool Client::setInvisible(Client *issuer, bool on) {
+bool Client::setInvisible(bool on) {
 	unsigned int reverseFlag = ~CLI_INV;
 	unsigned int before		 = flags;
 	flags					 = flags && reverseFlag;
@@ -94,7 +94,7 @@ bool Client::setInvisible(Client *issuer, bool on) {
 	return true;
 };
 
-bool Client::setNotice(Client *issuer, bool on) {
+bool Client::setNotice(bool on) {
 	unsigned int reverseFlag = ~CLI_NOTICE;
 	unsigned int before		 = flags;
 	flags					 = flags && reverseFlag;
@@ -104,7 +104,7 @@ bool Client::setNotice(Client *issuer, bool on) {
 	return true;
 };
 
-bool Client::setWallop(Client *issuer, bool on) {
+bool Client::setWallop(bool on) {
 	unsigned int reverseFlag = ~CLI_WALLOP;
 	unsigned int before		 = flags;
 	flags					 = flags && reverseFlag;

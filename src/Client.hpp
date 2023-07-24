@@ -82,10 +82,10 @@ class Client {
 	std::string	 readData;
 	std::string	 sendData;
 
-	bool setOperator(Client *issuer, bool on);
-	bool setInvisible(Client *issuer, bool on);
-	bool setNotice(Client *issuer, bool on);
-	bool setWallop(Client *issuer, bool on);
+	bool setOperator(bool on);
+	bool setInvisible(bool on);
+	bool setNotice(bool on);
+	bool setWallop(bool on);
 
 	std::vector<Channel *> channels;
 };
