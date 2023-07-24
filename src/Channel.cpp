@@ -60,6 +60,8 @@ bool Channel::toggleMode(char mode, bool on) {
 	return !(before == modes.size());
 }
 
+std::set<char> &Channel::getMode() { return modes; }
+
 void Channel::initialize(std::string name, std::string password, Client *op) {
 	this->name	   = name;
 	this->password = password;

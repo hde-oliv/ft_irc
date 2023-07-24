@@ -50,10 +50,11 @@ class Channel {
 	Channel(void);
 	~Channel(void);
 
-	std::string	 getName() const;
-	std::string	 getTopic() const;
-	Client		*getCreator();
-	unsigned int getUserLimit() const;
+	std::string		getName() const;
+	std::string		getTopic() const;
+	Client		   *getCreator();
+	unsigned int	getUserLimit() const;
+	std::set<char> &getMode();
 
 	std::map<Client *, unsigned int> &getClients();
 
