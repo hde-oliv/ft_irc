@@ -31,6 +31,7 @@ class Server {
 	void startServer();
 
 	bool evalChanMode(pollfd p, std::vector<std::string> args);
+	bool evalUserMode(pollfd p, std::vector<std::string> args);
 
 	private:
 	void	setupSocket();

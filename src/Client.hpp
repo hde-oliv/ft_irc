@@ -16,6 +16,11 @@
 #define OPER_USER "foo"
 #define OPER_PASS "bar"
 
+#define CLI_OPER 0b1
+#define CLI_INV 0b01
+#define CLI_WALLOP 0b001
+#define CLI_NOTICE 0b0001
+
 class Channel;
 
 class Client {
@@ -62,19 +67,25 @@ class Client {
 	std::string getClientPrefix();
 
 	private:
-	int			fd;
-	int			registration;  // PASS(2) - USER(4) - NICK(8)
-	bool		welcome;	   // If the welcome message was sent
-	bool		knowPassword;  // If the client knows the server password
-	bool		op;			   // If the client is a Server Operator
-	bool		toDisconnect;
-	std::string nickname;
-	std::string username;
-	std::string hostname;
-	std::string servername;
-	std::string realname;
-	std::string readData;
-	std::string sendData;
+	int			 fd;
+	int			 registration;	// PASS(2) - USER(4) - NICK(8)
+	bool		 welcome;		// If the welcome message was sent
+	bool		 knowPassword;	// If the client knows the server password
+	bool		 op;			// If the client is a Server Operator
+	bool		 toDisconnect;
+	unsigned int flags;
+	std::string	 nickname;
+	std::string	 username;
+	std::string	 hostname;
+	std::string	 servername;
+	std::string	 realname;
+	std::string	 readData;
+	std::string	 sendData;
+
+	bool setOperator(bool on);
+	bool setInvisible(bool on);
+	bool setNotice(bool on);
+	bool setWallop(bool on);
 
 	std::vector<Channel *> channels;
 };

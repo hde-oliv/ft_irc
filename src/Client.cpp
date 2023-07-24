@@ -74,6 +74,46 @@ std::vector<Channel *> &Client::getChannels() { return channels; }
 
 void Client::addChannel(Channel *ch) { channels.push_back(ch); };
 
+bool Client::setOperator(bool on) {
+	unsigned int reverseFlag = ~CLI_OPER;
+	unsigned int before		 = flags;
+	flags					 = flags && reverseFlag;
+	if (flags == before) {
+		return false;
+	}
+	return true;
+};
+
+bool Client::setInvisible(bool on) {
+	unsigned int reverseFlag = ~CLI_INV;
+	unsigned int before		 = flags;
+	flags					 = flags && reverseFlag;
+	if (flags == before) {
+		return false;
+	}
+	return true;
+};
+
+bool Client::setNotice(bool on) {
+	unsigned int reverseFlag = ~CLI_NOTICE;
+	unsigned int before		 = flags;
+	flags					 = flags && reverseFlag;
+	if (flags == before) {
+		return false;
+	}
+	return true;
+};
+
+bool Client::setWallop(bool on) {
+	unsigned int reverseFlag = ~CLI_WALLOP;
+	unsigned int before		 = flags;
+	flags					 = flags && reverseFlag;
+	if (flags == before) {
+		return false;
+	}
+	return true;
+};
+
 /*
 bool operator<(const Client& lhs, const Client& rhs) {
 	return lhs.getFd() < rhs.getFd();
