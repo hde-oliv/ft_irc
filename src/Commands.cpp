@@ -216,6 +216,50 @@ void Server::who(pollfd p, Command &t) {
 	c->setSendData(nosuchserver(p, t.args[0]));
 }
 
+void Server::topic(pollfd p, Command &t) {
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	if (t.args.size() < 1) {
+		c->setSendData(needmoreparams(p, "TOPIC"));
+		return;
+	}
+
+	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+
+	if (t.args.size() == 1) {
+		if (ch->getTopic() != "") {
+			return c->setSendData(topic(p, ch));
+		} else {
+			return c->setSendData(notopic(p, ch));
+		}
+	}
+
+	std::map<Client *, uint>		   cls = ch->getClients();
+	std::map<Client *, uint>::iterator it  = cls.find(c);
+	std::set<char>					   md  = ch->getMode();
+
+	if (it == cls.end()) {
+		return c->setSendData(notonchannel(p, ch));
+	}
+
+	if (find(md.begin(), md.end(), 't') != md.end()) {
+		std::map<Client *, uint> cls = ch->getClients();
+
+		std::map<Client *, uint>::iterator it = cls.find(c);
+
+		if (it != cls.end() && it->second & USER_OPERATOR) {
+			ch->setTopic(t.args[1]);
+			return c->setSendData(topic(p, ch));
+		} else {
+			return c->setSendData(chanoprivsneeded(p, ch));
+		}
+	} else {
+		ch->setTopic(t.args[1]);
+		return c->setSendData(topic(p, ch));
+	}
+}
+
 void Server::whois(pollfd p, Command &t) {
 	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
@@ -507,3 +551,12 @@ bool Server::validChannelName(std::string name) {
 	}
 	return true;
 };
+
+void Server::part(pollfd p, Command &t) {
+	(void)p;
+	(void)t;
+}
+void Server::notice(pollfd p, Command &t) {
+	(void)p;
+	(void)t;
+}

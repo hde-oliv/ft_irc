@@ -422,3 +422,28 @@ std::string Server::unknownmodeflag(Client *cli) {
 	// return ":localhost MODE #semsenha +ti \r\n";
 	return ss.str();
 };
+std::string Server::notonchannel(pollfd p, Channel *ch) {
+	std::stringstream ss;
+	Client		   *c = &clients[p.fd];
+
+	ss << ":localhost 442";
+	ss << " " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :You're not on that channel";
+	ss << "\r\n";
+
+	return ss.str();
+}
+
+std::string Server::chanoprivsneeded(pollfd p, Channel *ch) {
+	std::stringstream ss;
+	Client		   *c = &clients[p.fd];
+
+	ss << ":localhost 482";
+	ss << " " << c->getNickname();
+	ss << " " << ch->getName();
+	ss << " :You're not channel operator";
+	ss << "\r\n";
+
+	return ss.str();
+}

@@ -72,6 +72,9 @@ class Server {
 	void whois(pollfd p, Command &t);
 	void mode(pollfd p, Command &t);
 	void privmsg(pollfd p, Command &t);
+	void topic(pollfd p, Command &t);
+	void notice(pollfd p, Command &t);	// TODO: rike
+	void part(pollfd p, Command &t);	// TODO: rike
 
 	void channelMode(pollfd p, Command &t);
 	void userMode(pollfd p, Command &t);
@@ -100,6 +103,8 @@ class Server {
 	std::string badchannelkey(pollfd p, std::string channel);
 	std::string usersdontmatch(Client *cli);
 	std::string unknownmodeflag(Client *cli);
+	std::string notonchannel(pollfd p, Channel *ch);
+	std::string chanoprivsneeded(pollfd p, Channel *ch);
 
 	std::string channelmodeis(pollfd p, std::string channel);
 	std::string usermodeis(Channel &ch, Client *cli, std::string modeStr);
