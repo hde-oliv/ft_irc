@@ -1,5 +1,7 @@
 #include "Client.hpp"
 
+#include <algorithm>
+
 #include "Channel.hpp"
 
 Client::Client() {
@@ -69,6 +71,10 @@ void Client::resetAllData() {
 
 void Client::resetSendData(int len) { sendData = sendData.substr(len); }
 void Client::resetReadData() { readData.clear(); }
+
+void Client::removeChannel(Channel *ch) {
+	channels.erase(find(channels.begin(), channels.end(), ch));
+}
 
 std::vector<Channel *> &Client::getChannels() { return channels; }
 
