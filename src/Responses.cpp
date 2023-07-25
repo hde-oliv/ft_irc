@@ -433,13 +433,13 @@ std::string Server::unknownmodeflag(Client *cli) {
 	ss << "\r\n";
 	return ss.str();
 };
-std::string Server::notonchannel(pollfd p, Channel *ch) {
+std::string Server::notonchannel(pollfd p, std::string name) {
 	std::stringstream ss;
 	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 442";
 	ss << " " << c->getNickname();
-	ss << " " << ch->getName();
+	ss << " " << name;
 	ss << " :You're not on that channel";
 	ss << "\r\n";
 

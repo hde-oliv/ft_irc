@@ -103,7 +103,7 @@ class Server {
 	std::string badchannelkey(pollfd p, std::string channel);
 	std::string usersdontmatch(Client *cli);
 	std::string unknownmodeflag(Client *cli);
-	std::string notonchannel(pollfd p, Channel *ch);
+	std::string notonchannel(pollfd p, std::string name);
 	std::string chanoprivsneeded(pollfd p, Channel *ch);
 
 	std::string channelmodeis(pollfd p, std::string channel);
