@@ -63,12 +63,11 @@ class Channel {
 	void initialize(std::string name, Client *op);
 
 	private:
-	Client	   *creator;
-	std::string name;
-	std::string topic;
-	std::string host;
-	std::string password;
-	// std::vector<Client *>			 operators;
+	Client						  *creator;
+	std::string						 name;
+	std::string						 topic;
+	std::string						 host;
+	std::string						 password;
 	std::set<char>					 modes;
 	unsigned int					 userLimit;
 	bool							 initialized;

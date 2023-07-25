@@ -31,10 +31,6 @@ void Channel::removePassword() { this->password = ""; };
 
 void Channel::removeClient(Client *c) { clients.erase(c); }
 
-// void Channel::removeOperator(Client *c) {
-// 	(void)std::remove(operators.begin(), operators.end(), c);
-// }
-
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 	std::map<Client *, unsigned int>::iterator it = clients.begin();
 
@@ -117,9 +113,7 @@ std::map<Client *, unsigned int>::iterator Channel::getClientByNick(
 	return (it);
 };
 
-/*
-Returns <channel> <mode>
-*/
+// Returns <channel> <mode>
 std::string Channel::getStrModes() {
 	std::string modeStr = "";
 

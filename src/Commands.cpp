@@ -573,3 +573,34 @@ bool Server::validChannelName(std::string name) {
 	}
 	return true;
 };
+
+void Server::kick(pollfd p, Command &t) {
+	Client *c = &clients[p.fd];
+	if (t.args.size() < 2) {
+		return c->setSendData(needmoreparams(p, "KICK"));
+	}
+	Channel *ch = NULL;
+
+	std::map<std::string, Channel>::iterator it = getChannelByName(t.args[0]);
+	if (it != channels.end()) {
+		ch = &it->second;
+	}
+	if (ch == NULL) {
+		return c->setSendData(nosuchchannel(p, t.args[0]));
+	}
+
+	std::map<Client *, unsigned int>::iterator target;
+	target = ch->getClientByNick(t.args[1]);
+	if (target == ch->getClients().end()) {
+		return c->setSendData(usernotinchannel(c, ch, t.args[1]));
+	}
+
+	std::map<Client *, unsigned int>::iterator issuer;
+	issuer = ch->getClientByNick(c->getNickname());
+	if (issuer == ch->getClients().end()) {
+		return c->setSendData(notonchannel(p, ch->getName()));
+	}
+	if (!(issuer->second & USER_OPERATOR))
+		return c->setSendData(chanoprivsneeded(issuer->first, ch));
+	return;
+};

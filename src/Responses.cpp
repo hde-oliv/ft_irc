@@ -458,3 +458,43 @@ std::string Server::chanoprivsneeded(pollfd p, Channel *ch) {
 
 	return ss.str();
 }
+// Success response for KICK command
+std::string Server::kicksuccess(Client *cli, Channel *chan,
+								std::string target) {
+	std::stringstream ss;
+
+	ss << ":" << cli->getNickname();
+	ss << " KICK " << chan->getName();
+	ss << " " << target;
+	ss << " :" << cli->getNickname();
+	ss << "\r\n";
+	return ss.str();
+};
+// Failure response for KICK command
+//	where the user was not found in the channel
+std::string Server::usernotinchannel(Client *cli, Channel *chan,
+									 std::string target) {
+	std::stringstream ss;
+
+	ss << ":localhost 441";
+	ss << " " << cli->getNickname();
+	ss << " " << target;
+	ss << " " << chan->getName();
+	ss << " :They aren't on that";
+	ss << "\r\n";
+
+	return ss.str();
+}
+// Failure response for KICK command
+//  where the issuer has no operator privileges
+std::string Server::chanoprivsneeded(Client *issuer, Channel *chan) {
+	std::stringstream ss;
+
+	ss << ":localhost 482";
+	ss << " " << issuer->getNickname();
+	ss << " " << chan->getName();
+	ss << " :You're not channel operator";
+	ss << "\r\n";
+
+	return ss.str();
+}

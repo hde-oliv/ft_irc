@@ -73,6 +73,7 @@ class Server {
 	void mode(pollfd p, Command &t);
 	void privmsg(pollfd p, Command &t);
 	void topic(pollfd p, Command &t);
+	void kick(pollfd p, Command &t);
 	void notice(pollfd p, Command &t);	// TODO: rike
 	void part(pollfd p, Command &t);	// TODO: rike
 
@@ -105,6 +106,11 @@ class Server {
 	std::string unknownmodeflag(Client *cli);
 	std::string notonchannel(pollfd p, std::string name);
 	std::string chanoprivsneeded(pollfd p, Channel *ch);
+	std::string chanoprivsneeded(Client *issuer, Channel *chan);
+
+	std::string usernotinchannel(Client *cli, Channel *chan,
+								 std::string target);
+	std::string kicksuccess(Client *cli, Channel *chan, std::string target);
 
 	std::string channelmodeis(pollfd p, std::string channel);
 	std::string usermodeis(Channel &ch, Client *cli, std::string modeStr);
