@@ -5,6 +5,7 @@
 Client::Client() {
 	this->fd		   = 0;
 	this->registration = 0;
+	this->flags		   = CLI_INV | CLI_WALLOP | CLI_NOTICE;
 	this->knowPassword = false;
 	this->welcome	   = false;
 	this->toDisconnect = false;
@@ -149,7 +150,24 @@ bool Client::setMode(char mode, bool on) {
 	}
 	return changed;
 };
+std::string Client::getModesStr() const {
+	std::string modes = "";
 
+	if (CLI_OPER & flags) {
+		modes.append(1, 'o');
+	}
+	if (CLI_INV & flags) {
+		modes.append(1, 'i');
+	}
+	if (CLI_WALLOP & flags) {
+		modes.append(1, 'w');
+	}
+	if (CLI_NOTICE & flags) {
+		modes.append(1, 's');
+	}
+	if (modes.size() > 0) modes.insert(0, 1, '+');
+	return modes;
+};
 /*
 bool operator<(const Client& lhs, const Client& rhs) {
 	return lhs.getFd() < rhs.getFd();

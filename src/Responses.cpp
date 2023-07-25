@@ -357,7 +357,7 @@ std::string Server::unknownmode(pollfd p, char c) {
 }
 // 221	RPL_UMODEIS				"<user mode string>"
 
-// Returns the complete mode information for a given channel
+// Returns modes changed in the channel made by a client with MODE command
 std::string Server::usermodeis(Channel &ch, Client *cli, std::string modeStr) {
 	std::stringstream ss;
 
@@ -368,24 +368,37 @@ std::string Server::usermodeis(Channel &ch, Client *cli, std::string modeStr) {
 	ss << "\r\n";
 	return ss.str();
 }
+// Returns usermodes changed with MODE command
+// Called by user with /MODE <nickname> '+'|'-'{i|s|w|o}
 std::string Server::usermodeis(Client *cli, std::string modeStr) {
 	std::stringstream ss;
 	// :hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br MODE hdeoliv :+i
+	// :hcduller!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br MODE hcduller :-i
 
 	ss << ":" << cli->getNickname();
-	ss << " MODE";
-	ss << " " << modeStr;
+	ss << " MODE 221";
+	ss << " :" << modeStr;
 	ss << "\r\n";
 	return ss.str();
 }
-// this function is used for MODE without flags
-std::string Server::channelmodeis(pollfd p, std::string channel) {
-	// 324	RPL_CHANNELMODEIS		"<channel> <mode> <mode params>"
-	// :hcduller!~hcduller@Rizon-1585D411.dsl.telesp.net.br MODE #semsenhahc +ti
-	// nick!user@host
+// Returns user modes in relation to the server.
+// Called by user with /MODE <nickname>
+std::string Server::usermodeis(Client *cli) {
+	std::stringstream ss;
+	//: irc.uworld.se 221 hdeoliv +ix
 
-	std::stringstream						 ss;
-	Client								  *cl	   = &clients[p.fd];
+	ss << ":localhost 221";
+	ss << " " << cli->getNickname();
+	ss << " " << cli->getModesStr();
+	ss << "\r\n";
+	return ss.str();
+}
+// This function is used for MODE without flags, returning the complete list of
+// modes enabled for a given channel
+std::string Server::channelmodeis(pollfd p, std::string channel) {
+	Client		   *cl = &clients[p.fd];
+	std::stringstream ss;
+
 	std::map<std::string, Channel>::iterator ch_it = getChannelByName(channel);
 	if (ch_it == channels.end()) {
 		return nosuchchannel(p, channel);
@@ -406,9 +419,8 @@ std::string Server::usersdontmatch(Client *cli) {
 
 	ss << ":localhost 502";
 	ss << " " << cli->getNickname();
-	ss << " :Cant change mode for other users";
+	ss << " :Cannot change mode for other users";
 	ss << "\r\n";
-	// return ":localhost MODE #semsenha +ti \r\n";
 	return ss.str();
 };
 
@@ -419,7 +431,6 @@ std::string Server::unknownmodeflag(Client *cli) {
 	ss << " " << cli->getNickname();
 	ss << " :Unknown MODE flag";
 	ss << "\r\n";
-	// return ":localhost MODE #semsenha +ti \r\n";
 	return ss.str();
 };
 std::string Server::notonchannel(pollfd p, Channel *ch) {

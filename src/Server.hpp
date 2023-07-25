@@ -109,6 +109,7 @@ class Server {
 	std::string channelmodeis(pollfd p, std::string channel);
 	std::string usermodeis(Channel &ch, Client *cli, std::string modeStr);
 	std::string usermodeis(Client *cli, std::string modeStr);
+	std::string usermodeis(Client *cli);
 
 	bool validNickname(std::string nickname);
 	bool nicknameAlreadyExists(std::string nickname);

@@ -16,10 +16,10 @@
 #define OPER_USER "foo"
 #define OPER_PASS "bar"
 
-#define CLI_OPER 0b1
-#define CLI_INV 0b01
-#define CLI_WALLOP 0b001
-#define CLI_NOTICE 0b0001
+#define CLI_OPER 0b0001
+#define CLI_INV 0b0010
+#define CLI_WALLOP 0b0100
+#define CLI_NOTICE 0b1000
 
 class Channel;
 
@@ -64,6 +64,7 @@ class Client {
 	std::string				getReadData() const;
 	std::string				getSendData() const;
 	std::vector<Channel *> &getChannels();
+	std::string				getModesStr() const;
 
 	std::string getClientPrefix();
 

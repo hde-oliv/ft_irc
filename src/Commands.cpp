@@ -107,7 +107,6 @@ void Server::join(pollfd p, Command &t) {
 	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
-	// TODO: Check later for ERR_BADCHANMASK
 	if (t.args.size() < 1) {
 		c->setSendData(needmoreparams(p, "JOIN"));
 		return;
@@ -152,7 +151,6 @@ void Server::join(pollfd p, Command &t) {
 	ch->addClient(c);	// TODO: Implement later to remove client
 	c->addChannel(ch);	// TODO: Implement later to remove channel
 
-	// TODO: after implementing BANS, this line should check for bans!
 	ss << c->getClientPrefix();
 	ss << " JOIN :";
 	ss << t.args[0];
@@ -171,7 +169,6 @@ void Server::join(pollfd p, Command &t) {
 	/*
 	ERR_BANNEDFROMCHAN
 	ERR_BADCHANNELKEY
-	ERR_BADCHANMASK
 	ERR_TOOMANYCHANNELS
 	ERR_NEEDMOREPARAMS
 	ERR_INVITEONLYCHAN
@@ -217,7 +214,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::topic(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -388,25 +385,12 @@ void Server::channelMode(pollfd p, Command &t) {
 			} else {
 				return;
 			}
-
-			break;
-		case 'b':
-			if (on) {
-				if (t.args.size() > 2) {
-					ch.setBanMask(t.args[2]);  // must be reworked, banMask must
-											   // be a vector, map or set.
-					modesChanged += "b " + t.args[2];
-				} else {
-					return;	 // sould return list of banMasks
-				}
-			} else {
-				return;	 // sould return list of banMasks
-			}
 			break;
 		case 'v':
 			ch.setSpeaker(t.args[2], on);
 			break;
 		case 'k':
+			ch.toggleMode('k', on);
 			if (on) {
 				ch.setPassword(t.args[2]);
 				modesChanged += "k " + t.args[2];
@@ -439,7 +423,12 @@ void Server::userMode(pollfd p, Command &t) {
 	}
 
 	std::set<char>::iterator it = flags.begin();
-	while (it != flags.end()) {
+	while (it != flags.end()) {	 // this prevents users from elevating
+								 // themselves
+		if (*it == 'o' && on) {
+			it++;
+			continue;
+		}
 		if (c->setMode(*it, on)) {
 			changes.append(1, *it);
 		}
@@ -455,24 +444,24 @@ void Server::mode(pollfd p, Command &t) {
 
 	// identify if command applies to channel or client
 	if (t.args.size() < 2) {
-		if (ch_prefix.find(t.args[0].at(0)))
+		if (ch_prefix.find(t.args[0].at(0)) != std::string::npos)
 			return c->setSendData(channelmodeis(p, t.args[0]));
-		else
-			return c->setSendData(
-				channelmodeis(p, t.args[0]));  // TODO this should return MODE
-											   // flags for the user!
+		else {
+			if (toIrcUpperCase(c->getNickname()) == toIrcUpperCase(t.args[0]))
+				return c->setSendData(usermodeis(c));
+			else
+				return c->setSendData(usersdontmatch(c));
+		}
 	}
 
-	if (ch_prefix.find(t.args[0].at(0))) {
+	if (ch_prefix.find(t.args[0].at(0)) != std::string::npos) {
 		if (evalChanMode(p, t.args)) {
-			channelMode(p, t);
+			return channelMode(p, t);
 		}
 	} else {
 		if (evalUserMode(p, t.args)) {
+			return userMode(p, t);
 		}
-		/*
-			Parameters: <nickname> {[+|-]|i|w|s|o}
-		*/
 		return;
 	}
 	/*

@@ -117,9 +117,6 @@ std::map<Client *, unsigned int>::iterator Channel::getClientByNick(
 	return (it);
 };
 
-void Channel::setBanMask(std::string newBanMask) { banMask = newBanMask; };
-std::string Channel::getBanMask() { return banMask; };
-
 /*
 Returns <channel> <mode>
 */
@@ -133,11 +130,10 @@ std::string Channel::getStrModes() {
 			modeStr += (*it);
 			it++;
 		}
-		// modeStr += " ";
+		if (modeStr.find('k') != std::string::npos) {
+			modeStr.append(" ");
+			modeStr.append(this->password);
+		}
 	}
-	// std::ostringstream os;
-	// os << getUserLimit();
-	// modeStr += os.str() + " ";
-	// modeStr += getBanMask();
 	return (modeStr);
 };
