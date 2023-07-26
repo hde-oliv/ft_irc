@@ -698,46 +698,6 @@ void Server::invite(pollfd p, Command &t) {
 	issuer->setSendData(inviting(issuer, target, chan));
 	return target->setSendData(inviterrpl(issuer, target, chan));
 
-	// invite target, maybe a list of invited nicknames might be added
-
-	/*
-	pidgin sent /invite hdeoliv
-	INVITE hdeoliv #semsenha
-
-	server sent:
-	:irc.uworld.se 341 hcduller hdeoliv #semsenha
-	:hcduller!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br INVITE hdeoliv
-	:#semsenha
-
-	pidgin sent:
-	JOIN #semsenha
-
-	server sent:
-	:hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br JOIN :#semsenha
-	:hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br JOIN :#semsenha
-	:irc.uworld.se 353 hdeoliv = #semsenha :hdeoliv @hcduller
-	:irc.uworld.se 366 hdeoliv #semsenha :End of /NAMES list.
-
-
-
-
-	RPL_INVITING			341 "<channel> <nick>"
-	Server to issuer
-		:localhost 341 <issuer> <target> <channel>
-	Server to target
-		:<issuer> INVITE <target> :<channel>
-
-
-	RPL_AWAY				301 "<nick> :<away message>"
-
-	ERR_NEEDMOREPARAMS		461 "<command> :Not enough parameters"
-
-	ERR_NOTONCHANNEL		442 "<channel> :You're not on that channel"
-
-	ERR_NOSUCHNICK			401 "<nickname> :No such nick/channel"
-	:localhost 401 <issuer> <target> :No such nick/channel
-
-	ERR_USERONCHANNEL		443 "<user> <channel> :is already on channel"
-	ERR_CHANOPRIVSNEEDED	482 "<channel> :You're not channel operator"
-	*/
+	// TODO : inviting someone must add their nick or client* in a list for
+	// approval.
 }
