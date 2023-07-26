@@ -29,7 +29,11 @@ void Channel::addClient(Client *c) { clients.insert(std::make_pair(c, 0)); }
 void Channel::setPassword(std::string password) { this->password = password; }
 void Channel::removePassword() { this->password = ""; };
 
-void Channel::removeClient(Client *c) { clients.erase(c); }
+void Channel::removeClient(Client *c) {
+	clients.erase(c);
+	// TODO: if there are no more operators, someone must be elevated!
+	// if there no more clients, the channel must be closed
+}
 
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
 	std::map<Client *, unsigned int>::iterator it = clients.begin();

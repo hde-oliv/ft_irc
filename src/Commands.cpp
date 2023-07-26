@@ -602,5 +602,7 @@ void Server::kick(pollfd p, Command &t) {
 	}
 	if (!(issuer->second & USER_OPERATOR))
 		return c->setSendData(chanoprivsneeded(issuer->first, ch));
+	ch->removeClient(target->first);
+	ch->broadcast(c, kicksuccess(c, ch, target->first->getNickname()), true);
 	return;
 };
