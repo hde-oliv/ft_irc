@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -104,7 +104,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -190,7 +190,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -214,7 +214,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::topic(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -258,7 +258,7 @@ void Server::topic(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -287,7 +287,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -304,7 +304,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -317,7 +317,7 @@ void Server::ping(pollfd p, Command &t) {
 }
 
 void Server::part(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -345,8 +345,36 @@ void Server::part(pollfd p, Command &t) {
 }
 
 void Server::notice(pollfd p, Command &t) {
-	(void)p;
-	(void)t;
+	Client			 *c = &clients[p.fd];
+	std::stringstream ss;
+
+	if (t.args.size() < 2) {
+		return;
+	}
+
+	ss << c->getClientPrefix();
+	ss << " NOTICE";
+	ss << " ";
+	ss << t.args[0];
+	ss << " ";
+	ss << t.args[1];
+	ss << "\r\n";
+
+	std::string ch_prefix = CHANNEL_PREFIX;
+	if (ch_prefix.find(t.args[0].at(0)) != std::string::npos) {
+		Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+		ch->broadcast(c, ss.str(), false);
+		return;
+	} else {
+		std::map<int, Client>::iterator it = clients.begin();
+
+		for (; it != clients.end(); it++) {
+			if (it->second.getNickname() == t.args[0]) {
+				it->second.setSendData(ss.str());
+				return;
+			}
+		}
+	}
 }
 
 void Server::channelMode(pollfd p, Command &t) {
@@ -360,7 +388,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel								   &ch = it->second;
+	Channel									  &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 
