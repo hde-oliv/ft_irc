@@ -104,3 +104,18 @@ bool Server::evalUserMode(pollfd p, std::vector<std::string> args) {
 	}
 	return true;
 }
+Client *Server::getClientByNick(std::string nickname) {
+	Client *c = NULL;
+
+	std::map<int, Client>::iterator it;
+	it = clients.begin();
+	while (it != clients.end()) {
+		if (toIrcUpperCase(nickname) ==
+			toIrcUpperCase(it->second.getNickname())) {
+			c = &it->second;
+			break;
+		}
+		it++;
+	}
+	return c;
+};

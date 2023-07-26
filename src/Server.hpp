@@ -33,7 +33,18 @@ class Server {
 	bool evalChanMode(pollfd p, std::vector<std::string> args);
 	bool evalUserMode(pollfd p, std::vector<std::string> args);
 
+	Client *getClientByNick(std::string nickname);
+
 	private:
+	std::string					   creationDatetime;
+	std::string					   password;
+	int							   port;
+	int							   server_fd;
+	std::map<int, Client>		   clients;
+	std::map<std::string, Channel> channels;
+	std::vector<pollfd>			   pollFds;
+	struct sockaddr_in			   address;
+
 	void	setupSocket();
 	void	clientEventHandling();
 	void	serverEventHandling();
@@ -50,15 +61,6 @@ class Server {
 	std::map<std::string, Channel>::iterator getChannelByName(
 		std::string channelName);
 
-	std::string					   creationDatetime;
-	std::string					   password;
-	int							   port;
-	int							   server_fd;
-	std::map<int, Client>		   clients;
-	std::map<std::string, Channel> channels;
-	std::vector<pollfd>			   pollFds;
-	struct sockaddr_in			   address;
-
 	void executeClientMessage(pollfd p, std::string msg);
 	void pass(pollfd p, Command &t);
 	void user(pollfd p, Command &t);
@@ -74,6 +76,7 @@ class Server {
 	void privmsg(pollfd p, Command &t);
 	void topic(pollfd p, Command &t);
 	void kick(pollfd p, Command &t);
+	void invite(pollfd p, Command &t);
 	void notice(pollfd p, Command &t);	// TODO: rike
 	void part(pollfd p, Command &t);	// TODO: rike
 
@@ -110,6 +113,8 @@ class Server {
 	std::string nosuchnick(pollfd p, std::string name);
 	std::string chanoprivsneeded(pollfd p, Channel *ch);
 	std::string chanoprivsneeded(Client *issuer, Channel *chan);
+	std::string inviting(Client *issuer, Client *target, Channel *ch);
+	std::string inviterrpl(Client *issuer, Client *target, Channel *ch);
 
 	std::string usernotinchannel(Client *cli, Channel *chan,
 								 std::string target);

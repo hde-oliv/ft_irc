@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 	std::string		  ch_prefix = CHANNEL_PREFIX;
 
@@ -132,7 +132,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -218,7 +218,7 @@ void Server::join(pollfd p, Command &t) {
 }
 
 void Server::who(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -242,7 +242,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::topic(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -286,7 +286,7 @@ void Server::topic(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -315,7 +315,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -332,7 +332,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -345,7 +345,7 @@ void Server::ping(pollfd p, Command &t) {
 }
 
 void Server::part(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -373,7 +373,7 @@ void Server::part(pollfd p, Command &t) {
 }
 
 void Server::notice(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -416,7 +416,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel									  &ch = it->second;
+	Channel								   &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 
@@ -662,3 +662,82 @@ void Server::kick(pollfd p, Command &t) {
 	ch->broadcast(c, kicksuccess(c, ch, target->first->getNickname()), true);
 	return;
 };
+
+void Server::invite(pollfd p, Command &t) {
+	Client *issuer = &clients[p.fd];
+	if (t.args.size() < 2) {
+		return issuer->setSendData(needmoreparams(p, "INVITE"));
+	}
+
+	std::map<std::string, Channel>::iterator ch_it;
+	ch_it = this->getChannelByName(t.args[1]);
+	if (ch_it == channels.end()) {
+		return issuer->setSendData(nosuchnick(p, t.args[1]));
+	}
+	Channel *chan = &ch_it->second;
+
+	Client *target = getClientByNick(t.args[0]);
+	if (target == NULL) {
+		return issuer->setSendData(nosuchnick(p, t.args[0]));
+	}
+
+	std::map<Client *, unsigned int>::iterator issuer_it;
+	issuer_it = chan->getClientByNick(issuer->getNickname());
+	if (issuer_it == chan->getClients().end()) {
+		return issuer->setSendData(notonchannel(p, issuer->getNickname()));
+	}
+
+	bool isOper = issuer_it->second & USER_OPERATOR;
+
+	std::set<char> &chanModes = chan->getMode();
+
+	if (chanModes.find('i') != chanModes.end() && !isOper) {
+		return issuer->setSendData(chanoprivsneeded(issuer, chan));
+	}
+
+	issuer->setSendData(inviting(issuer, target, chan));
+	return target->setSendData(inviterrpl(issuer, target, chan));
+
+	// invite target, maybe a list of invited nicknames might be added
+
+	/*
+	pidgin sent /invite hdeoliv
+	INVITE hdeoliv #semsenha
+
+	server sent:
+	:irc.uworld.se 341 hcduller hdeoliv #semsenha
+	:hcduller!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br INVITE hdeoliv
+	:#semsenha
+
+	pidgin sent:
+	JOIN #semsenha
+
+	server sent:
+	:hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br JOIN :#semsenha
+	:hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br JOIN :#semsenha
+	:irc.uworld.se 353 hdeoliv = #semsenha :hdeoliv @hcduller
+	:irc.uworld.se 366 hdeoliv #semsenha :End of /NAMES list.
+
+
+
+
+	RPL_INVITING			341 "<channel> <nick>"
+	Server to issuer
+		:localhost 341 <issuer> <target> <channel>
+	Server to target
+		:<issuer> INVITE <target> :<channel>
+
+
+	RPL_AWAY				301 "<nick> :<away message>"
+
+	ERR_NEEDMOREPARAMS		461 "<command> :Not enough parameters"
+
+	ERR_NOTONCHANNEL		442 "<channel> :You're not on that channel"
+
+	ERR_NOSUCHNICK			401 "<nickname> :No such nick/channel"
+	:localhost 401 <issuer> <target> :No such nick/channel
+
+	ERR_USERONCHANNEL		443 "<user> <channel> :is already on channel"
+	ERR_CHANOPRIVSNEEDED	482 "<channel> :You're not channel operator"
+	*/
+}
