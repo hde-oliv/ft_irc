@@ -84,13 +84,22 @@ void Server::oper(pollfd p, Command &t) {
 void Server::privmsg(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
+	std::string		  ch_prefix = CHANNEL_PREFIX;
+
+	if (t.args.size() == 1) {
+		if (ch_prefix.find(t.args[0].at(0)) != std::string::npos)
+			return c->setSendData(norecipient(p, "PRIVMSG"));
+		else
+			return c->setSendData(notexttosend(p));
+	}
 
 	if (t.args.size() < 2) {
 		c->setSendData(needmoreparams(p, "PRIVMSG"));
 		return;
 	}
 
-	Channel *ch = &channels[toIrcUpperCase(t.args[0])];
+	// TODO: ERR_CANNOTSENDTOCHAN
+	// TODO: Handle multiple recipents and ERR_TOOMANYTARGETS
 
 	ss << c->getClientPrefix();
 	ss << " PRIVMSG";
@@ -100,7 +109,26 @@ void Server::privmsg(pollfd p, Command &t) {
 	ss << t.args[1];
 	ss << "\r\n";
 
-	ch->broadcast(c, ss.str(), false);
+	if (ch_prefix.find(t.args[0].at(0)) != std::string::npos) {
+		std::map<std::string, Channel>::iterator it =
+			channels.find(toIrcUpperCase(t.args[0]));
+
+		if (it == channels.end())
+			return c->setSendData(nosuchnick(p, t.args[0]));
+		else
+			return it->second.broadcast(c, ss.str(), false);
+	} else {
+		std::map<int, Client>::iterator it = clients.begin();
+
+		for (; it != clients.end(); it++) {
+			if (it->second.getNickname() == t.args[0]) {
+				return it->second.setSendData(ss.str());
+			}
+		}
+		if (it == clients.end()) {
+			return c->setSendData(nosuchnick(p, t.args[0]));
+		}
+	}
 }
 
 void Server::join(pollfd p, Command &t) {

@@ -105,6 +105,9 @@ class Server {
 	std::string usersdontmatch(Client *cli);
 	std::string unknownmodeflag(Client *cli);
 	std::string notonchannel(pollfd p, std::string name);
+	std::string norecipient(pollfd p, std::string name);
+	std::string notexttosend(pollfd p);
+	std::string nosuchnick(pollfd p, std::string name);
 	std::string chanoprivsneeded(pollfd p, Channel *ch);
 	std::string chanoprivsneeded(Client *issuer, Channel *chan);
 
