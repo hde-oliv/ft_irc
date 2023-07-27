@@ -51,6 +51,9 @@ class Channel {
 	void setCreator(Client *c);
 	void setUserLimit(unsigned int limit);
 	void setInitialized(bool value);
+	bool isInvited(std::string nickname);
+	void addInvite(std::string nickname);
+	void removeInvited(std::string nickname);
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
@@ -72,6 +75,7 @@ class Channel {
 	unsigned int					 userLimit;
 	bool							 initialized;
 	std::map<Client *, unsigned int> clients;
+	std::set<std::string>			 invited;
 };
 
 #endif

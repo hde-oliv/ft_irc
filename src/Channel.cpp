@@ -135,3 +135,16 @@ std::string Channel::getStrModes() {
 	}
 	return (modeStr);
 };
+bool Channel::isInvited(std::string nickname) {
+	if (invited.find(toIrcUpperCase(nickname)) != invited.end()) {
+		return true;
+	}
+	return false;
+};
+
+void Channel::addInvite(std::string nickname) {
+	invited.insert(toIrcUpperCase(nickname));
+};
+void Channel::removeInvited(std::string nickname) {
+	invited.erase(toIrcUpperCase(nickname));
+};

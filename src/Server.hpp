@@ -57,6 +57,7 @@ class Server {
 	pollfd &getAvailablePollFd();
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
+	void	successfullJoin(Client *cli, Channel *ch);
 
 	std::map<std::string, Channel>::iterator getChannelByName(
 		std::string channelName);
@@ -115,6 +116,7 @@ class Server {
 	std::string chanoprivsneeded(Client *issuer, Channel *chan);
 	std::string inviting(Client *issuer, Client *target, Channel *ch);
 	std::string inviterrpl(Client *issuer, Client *target, Channel *ch);
+	std::string inviteonlychan(Client *issuer, Channel *ch);
 
 	std::string usernotinchannel(Client *cli, Channel *chan,
 								 std::string target);

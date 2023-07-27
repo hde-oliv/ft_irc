@@ -132,8 +132,7 @@ void Server::privmsg(pollfd p, Command &t) {
 }
 
 void Server::join(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
-	std::stringstream ss;
+	Client *c = &clients[p.fd];
 
 	if (t.args.size() < 1) {
 		c->setSendData(needmoreparams(p, "JOIN"));
@@ -165,6 +164,13 @@ void Server::join(pollfd p, Command &t) {
 		}
 	}
 
+	std::set<char> &chModes = ch->getMode();
+	if (chModes.find('i') != chModes.end()) {
+		if (!ch->isInvited(c->getNickname())) {
+			return c->setSendData(inviteonlychan(c, ch));
+		}
+		return successfullJoin(c, ch);
+	}
 	// NOTE: Check if client sent a password and if its incorrect or
 	// the server has a password and the client didnt provide one
 	// TODO: Check if these responses are correct
@@ -175,10 +181,12 @@ void Server::join(pollfd p, Command &t) {
 		if (!ch->evalPassword(""))
 			return c->setSendData(badchannelkey(p, ch->getName()));
 	}
-
+	successfullJoin(c, ch);
+	/*
+	this section was extrated to function successfullJoin
+	std::stringstream ss;
 	ch->addClient(c);	// TODO: Implement later to remove client
 	c->addChannel(ch);	// TODO: Implement later to remove channel
-
 	ss << c->getClientPrefix();
 	ss << " JOIN :";
 	ss << t.args[0];
@@ -193,29 +201,33 @@ void Server::join(pollfd p, Command &t) {
 	}
 
 	c->setSendData(namreply(p, ch));
-
+	*/
 	/*
-	ERR_BANNEDFROMCHAN
-	ERR_BADCHANNELKEY
-	ERR_TOOMANYCHANNELS
-	ERR_NEEDMOREPARAMS
 	ERR_INVITEONLYCHAN
-	ERR_CHANNELISFULL
-	ERR_NOSUCHCHANNEL
-	RPL_TOPIC
-	else if (ch->isBanned(p)) {
-		return bannedfromchan(p);
-	} else if (!ch->wasInvited(p)) {
-		return inviteonlychan(p);
-	} else if (t.args.size() > 1 && ch->password != t.args[1]) {
-		return badchannelkey(p);
-	} else if (ch->isFull()) {
-		return channelisfull(p);
-	} else if (c->getChannels().size() >= MAX_CHANNELS) {
-		return toomanychannels(p);
-	}
 	*/
 }
+
+void Server::successfullJoin(Client *cli, Channel *ch) {
+	pollfd p = pollFds[cli->getFd()];
+
+	std::stringstream ss;
+	ch->addClient(cli);	  // TODO: Implement later to remove client
+	cli->addChannel(ch);  // TODO: Implement lliater to remove channel
+	ss << cli->getClientPrefix();
+	ss << " JOIN :";
+	ss << ch->getName();
+	ss << "\r\n";
+
+	ch->broadcast(cli, ss.str(), true);
+
+	if (ch->getTopic() != "") {
+		cli->setSendData(topic(p, ch));
+	} else {
+		cli->setSendData(notopic(p, ch));
+	}
+
+	cli->setSendData(namreply(p, ch));
+};
 
 void Server::who(pollfd p, Command &t) {
 	Client		   *c = &clients[p.fd];
@@ -695,9 +707,7 @@ void Server::invite(pollfd p, Command &t) {
 		return issuer->setSendData(chanoprivsneeded(issuer, chan));
 	}
 
+	chan->addInvite(target->getNickname());
 	issuer->setSendData(inviting(issuer, target, chan));
 	return target->setSendData(inviterrpl(issuer, target, chan));
-
-	// TODO : inviting someone must add their nick or client* in a list for
-	// approval.
 }

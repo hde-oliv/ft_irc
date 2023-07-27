@@ -49,6 +49,7 @@ void Client::setWelcome(bool value) { welcome = value; }
 void Client::setKnowPassword(bool value) { knowPassword = value; }
 void Client::setRegistration(int flag) { registration |= flag; }
 void Client::setFd(int fd) { this->fd = fd; }
+int	 Client::getfd() { return this->fd; };
 void Client::setUsername(std::string name) { username = name; }
 void Client::setHostname(std::string name) { hostname = name; }
 void Client::setRealname(std::string name) { realname = name; }

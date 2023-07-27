@@ -562,3 +562,16 @@ std::string Server::inviterrpl(Client *issuer, Client *target, Channel *ch) {
 
 	return ss.str();
 }
+// Returns
+// :<host> 473 <issuer> <channel> :Cannot join channel (+i)
+std::string Server::inviteonlychan(Client *issuer, Channel *ch) {
+	std::stringstream ss;
+
+	ss << ":localhost 473";
+	ss << " " << issuer->getNickname();
+	ss << " " << ch->getName();
+	ss << " :Cannot join channel (+i)";
+	ss << "\r\n";
+
+	return ss.str();
+}

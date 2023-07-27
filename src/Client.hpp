@@ -32,6 +32,7 @@ class Client {
 	std::vector<std::string> cmdVec;
 
 	void setFd(int fd);
+	int	 getfd();
 	void setReadData(std::string data);
 	void setSendData(std::string data);
 	void setHostname(std::string name);
