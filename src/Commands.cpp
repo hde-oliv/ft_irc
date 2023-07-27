@@ -169,6 +169,7 @@ void Server::join(pollfd p, Command &t) {
 		if (!ch->isInvited(c->getNickname())) {
 			return c->setSendData(inviteonlychan(c, ch));
 		}
+		ch->removeInvited(c->getNickname());
 		return successfullJoin(c, ch);
 	}
 	// NOTE: Check if client sent a password and if its incorrect or
