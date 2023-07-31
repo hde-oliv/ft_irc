@@ -1,4 +1,5 @@
 #include <csignal>
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <fstream>
@@ -22,7 +23,13 @@ void validateInput(int argc, char *argv[]) {
 	}
 
 	std::string password(argv[1]);
-	// TODO: Password validation
+
+	std::string forbidden = FORBIDDEN_USER_CHARS;
+
+	for (size_t i = 0; i < forbidden.length(); i++) {
+		if (password.find(forbidden[i]) != std::string::npos)
+			panic("main::validateInput", "Invalid password", P_EXIT);
+	}
 
 	int port = std::atoi(argv[2]);
 
