@@ -298,8 +298,6 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 		who(p, cm);
 	} else if (cm.cmd == "WHOIS") {
 		whois(p, cm);
-	} else if (cm.cmd == "WHOWAS") {
-		whowas(p, cm);	// TODO
 	} else if (cm.cmd == "KICK") {
 		kick(p, cm);
 	} else if (cm.cmd == "INVITE") {

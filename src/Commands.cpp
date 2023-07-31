@@ -322,11 +322,6 @@ void Server::whois(pollfd p, Command &t) {
 	c->setSendData(nosuchserver(p, t.args[0]));
 }
 
-void Server::whowas(pollfd p, Command &t) {
-	(void)p;
-	(void)t;
-}
-
 void Server::quit(pollfd p, Command &t) {
 	Client			 *c = &clients[p.fd];
 	std::stringstream ss;

@@ -71,7 +71,6 @@ class Server {
 	void ping(pollfd p, Command &t);
 	void join(pollfd p, Command &t);
 	void who(pollfd p, Command &t);
-	void whowas(pollfd p, Command &t);
 	void whois(pollfd p, Command &t);
 	void mode(pollfd p, Command &t);
 	void privmsg(pollfd p, Command &t);
