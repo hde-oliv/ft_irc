@@ -93,21 +93,4 @@ class Client {
 
 	std::vector<Channel *> channels;
 };
-/*
-bool operator<(const Client& lhs, const Client& rhs);
-bool operator!=(const Client& lhs, const Client& rhs);
-bool operator==(const Client& lhs, const Client& rhs);
-*/
-// TODO: Consider this later
-// Because of IRC's scandanavian origin, the characters {}| are
-// considered to be the lower case equivalents of the characters []\,
-// respectively. This is a critical issue when determining the
-// equivalence of two nicknames.
-
-// They MUST NOT contain any of the following characters: space (' ', 0x20),
-// comma (',', 0x2C), asterisk ('*', 0x2A), question mark ('?', 0x3F),
-// exclamation mark ('!', 0x21), at sign ('@', 0x40).
-// They MUST NOT start with any of the following characters: dollar ('$', 0x24),
-// colon (':', 0x3A). They MUST NOT start with a character listed as a channel
-// type prefix. They SHOULD NOT contain any dot character ('.', 0x2E).
 #endif

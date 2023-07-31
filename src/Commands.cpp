@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 	std::string		  ch_prefix = CHANNEL_PREFIX;
 
@@ -170,7 +170,7 @@ void Server::join(pollfd p, Command &t) {
 			return c->setSendData(inviteonlychan(c, ch));
 		}
 		ch->removeInvited(c->getNickname());
-		return successfullJoin(c, ch);
+		return successfulJoin(c, ch);
 	}
 	// NOTE: Check if client sent a password and if its incorrect or
 	// the server has a password and the client didnt provide one
@@ -182,9 +182,9 @@ void Server::join(pollfd p, Command &t) {
 		if (!ch->evalPassword(""))
 			return c->setSendData(badchannelkey(p, ch->getName()));
 	}
-	successfullJoin(c, ch);
+	successfulJoin(c, ch);
 	/*
-	this section was extrated to function successfullJoin
+	this section was extrated to function successfulJoin
 	std::stringstream ss;
 	ch->addClient(c);	// TODO: Implement later to remove client
 	c->addChannel(ch);	// TODO: Implement later to remove channel
@@ -208,7 +208,7 @@ void Server::join(pollfd p, Command &t) {
 	*/
 }
 
-void Server::successfullJoin(Client *cli, Channel *ch) {
+void Server::successfulJoin(Client *cli, Channel *ch) {
 	pollfd p = pollFds[cli->getFd()];
 
 	std::stringstream ss;
@@ -231,7 +231,7 @@ void Server::successfullJoin(Client *cli, Channel *ch) {
 };
 
 void Server::who(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -255,7 +255,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::topic(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -299,7 +299,7 @@ void Server::topic(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -328,7 +328,7 @@ void Server::whowas(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// TODO: Check if this broadcast is only on the channel
@@ -345,7 +345,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -358,7 +358,7 @@ void Server::ping(pollfd p, Command &t) {
 }
 
 void Server::part(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -386,7 +386,7 @@ void Server::part(pollfd p, Command &t) {
 }
 
 void Server::notice(pollfd p, Command &t) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -429,7 +429,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel								   &ch = it->second;
+	Channel									  &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 

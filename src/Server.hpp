@@ -57,7 +57,7 @@ class Server {
 	pollfd &getAvailablePollFd();
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
-	void	successfullJoin(Client *cli, Channel *ch);
+	void	successfulJoin(Client *cli, Channel *ch);
 
 	std::map<std::string, Channel>::iterator getChannelByName(
 		std::string channelName);
@@ -78,8 +78,8 @@ class Server {
 	void topic(pollfd p, Command &t);
 	void kick(pollfd p, Command &t);
 	void invite(pollfd p, Command &t);
-	void notice(pollfd p, Command &t);	// TODO: rike
-	void part(pollfd p, Command &t);	// TODO: rike
+	void notice(pollfd p, Command &t);
+	void part(pollfd p, Command &t);
 
 	void channelMode(pollfd p, Command &t);
 	void userMode(pollfd p, Command &t);
