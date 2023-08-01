@@ -116,6 +116,7 @@ class Server {
 	std::string inviting(Client *issuer, Client *target, Channel *ch);
 	std::string inviterrpl(Client *issuer, Client *target, Channel *ch);
 	std::string inviteonlychan(Client *issuer, Channel *ch);
+	std::string channelisfull(Client *issuer, Channel *ch);
 
 	std::string usernotinchannel(Client *cli, Channel *chan,
 								 std::string target);

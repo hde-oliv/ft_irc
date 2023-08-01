@@ -14,8 +14,6 @@
 #define CHANNEL_PREFIX "&#!+"
 #define CHANNEL_INVALID_CHARS " ,"
 #define USER_CHANNEL_LIMIT 10
-#define CHANNEL_MODES "opsitnmlvk"
-#define USER_MODES "iswov"
 
 #define USER_INVISIBLE 0b1
 #define USER_NOTICES 0b10

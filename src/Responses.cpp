@@ -575,3 +575,15 @@ std::string Server::inviteonlychan(Client *issuer, Channel *ch) {
 
 	return ss.str();
 }
+
+std::string Server::channelisfull(Client *issuer, Channel *ch) {
+	std::stringstream ss;
+
+	ss << ":localhost 471";
+	ss << " " << issuer->getNickname();
+	ss << " " << ch->getName();
+	ss << " :Cannot join channel (+l)";
+	ss << "\r\n";
+
+	return ss.str();
+}
