@@ -286,6 +286,9 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 	// check later if it can be skipped
 
 	for (; cli != clients.end(); cli++) {
+		if (!cli->first->isVisible()) {
+			continue;
+		}
 		ss << ":localhost 352 " << c->getNickname();
 		ss << " " << ch->getName();
 		ss << " " << (*cli->first).getUsername();

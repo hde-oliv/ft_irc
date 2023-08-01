@@ -175,14 +175,5 @@ std::string Client::getModesStr() const {
 	if (modes.size() > 0) modes.insert(0, 1, '+');
 	return modes;
 };
-/*
-bool operator<(const Client& lhs, const Client& rhs) {
-	return lhs.getFd() < rhs.getFd();
-}
-bool operator!=(const Client& lhs, const Client& rhs) {
-	return lhs.getFd() != rhs.getFd();
-}
-bool operator==(const Client& lhs, const Client& rhs) {
-	return lhs.getFd() == rhs.getFd();
-}
-*/
+
+bool Client::isVisible() const { return !(this->flags & CLI_INV); };

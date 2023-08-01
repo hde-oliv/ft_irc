@@ -52,6 +52,7 @@ class Client {
 	void addChannel(Channel *ch);
 	void removeChannel(Channel *ch);
 
+	bool					isVisible() const;
 	int						getFd() const;
 	int						getRegistration() const;
 	bool					getWelcome() const;
