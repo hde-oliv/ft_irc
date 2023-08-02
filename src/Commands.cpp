@@ -355,7 +355,8 @@ void Server::part(pollfd p, Command &t) {
 	while (chanIt != chs.end()) {
 		if (toIrcUpperCase((*chanIt)->getName()) == t.args[0]) {
 			if (t.args.size() != 2)
-				return removeClientFromChannel(c, *chanIt, c->getNickname());
+				return removeClientFromChannel(c, *chanIt,
+											   ":" + c->getNickname());
 			else
 				return removeClientFromChannel(c, *chanIt, t.args[1]);
 		}
