@@ -67,7 +67,6 @@ void Channel::initialize(std::string name, std::string password, Client *op) {
 	this->password = password;
 	this->clients.insert(std::make_pair(op, USER_OPERATOR));
 	this->initialized = true;
-	this->modes.insert('n');
 	this->modes.insert('t');
 }
 
@@ -75,7 +74,6 @@ void Channel::initialize(std::string name, Client *op) {
 	this->name = name;
 	this->clients.insert(std::make_pair(op, USER_OPERATOR));
 	this->initialized = true;
-	this->modes.insert('n');
 	this->modes.insert('t');
 }
 
