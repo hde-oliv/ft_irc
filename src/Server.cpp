@@ -293,7 +293,7 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 	} else if (cm.cmd == "NOTICE") {
 		notice(p, cm);	// TODO: Test
 	} else if (cm.cmd == "PART") {
-		part(p, cm);  // TODO: Test
+		part(p, cm);
 	} else if (cm.cmd == "WHO") {
 		who(p, cm);
 	} else if (cm.cmd == "WHOIS") {

@@ -99,7 +99,7 @@ class Server {
 	std::string nosuchchannel(pollfd p, std::string name);
 	std::string topic(pollfd p, Channel *ch);
 	std::string notopic(pollfd p, Channel *ch);
-	std::string namreply(pollfd p, Channel *ch);
+	std::string namreply(pollfd p, Channel *ch, bool found);
 	std::string whoreply(pollfd p, Channel *ch);
 	std::string whoisreply(pollfd p, Client *ch);
 	std::string nosuchserver(pollfd p, std::string name);
