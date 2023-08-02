@@ -353,7 +353,7 @@ void Server::part(pollfd p, Command &t) {
 
 	std::vector<Channel *>::iterator chanIt = chs.begin();
 	while (chanIt != chs.end()) {
-		if (toIrcUpperCase((*chanIt)->getName()) == t.args[0]) {
+		if (toIrcUpperCase((*chanIt)->getName()) == toIrcUpperCase(t.args[0])) {
 			if (t.args.size() != 2)
 				return removeClientFromChannel(c, *chanIt,
 											   ":" + c->getNickname());

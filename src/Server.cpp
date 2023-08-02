@@ -376,7 +376,7 @@ void Server::removeClientFromChannel(Client *cli, Channel *ch,
 		ss << cli->getNickname();
 		ss << " PART";
 		ss << " " << ch->getName();
-		ss << message;
+		ss << " " << message;
 		ss << "\r\n";
 
 		std::map<Client *, uint>::iterator itb = ch->getClients().begin();
