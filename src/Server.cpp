@@ -233,6 +233,16 @@ void Server::sendToClient(pollfd p) {
 void Server::ejectClient(int clientFd, int reason) {
 	std::vector<pollfd>::iterator it = pollFds.begin();
 
+	Client	   &cli = clients[clientFd];
+	std::size_t i	= 0;
+
+	std::vector<Channel *> cliChans = cli.getChannels();
+
+	while (i < cliChans.size()) {
+		cliChans[i]->removeClient(&cli);
+		i++;
+	}
+
 	for (; it < pollFds.end(); it++) {
 		if ((*it).fd == clientFd) {
 			close(clientFd);
@@ -337,7 +347,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
@@ -351,3 +361,11 @@ void Server::unexpectedDisconnectHandling(pollfd p) {
 	}
 	c->setToDisconnect(true);
 }
+
+void Server::remCliFromChan(Client *cli, Channel *ch) {
+	ch->removeClient(cli);
+	cli->removeChannel(ch);
+	if (ch->getClients().size() == 0) {
+		this->channels.erase(toIrcUpperCase(ch->getName()));
+	}
+};

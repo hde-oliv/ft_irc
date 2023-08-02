@@ -46,18 +46,13 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 		chars++;
 	}
 	if (togglePair.first && paramPair.first) {
-		cli->setSendData(
-			unknownmode(p, '!'));  // ! means and attempt to change channel and
-								   // users simultaniously
+		cli->setSendData(unknownmode(p, '!'));
 		return false;
 	}
 
 	if (togglePair.first) return true;
 
 	if (paramPair.first) {
-		// if (paramPair.second == 0 && modes.at(0) == 'b')
-		// 	return;	 // this should return the ban list! for the specific issue
-		// 			 // user in the appropriate place
 		if (args.size() < 3 && modes.at(0) == 'b') {
 			return true;
 		}

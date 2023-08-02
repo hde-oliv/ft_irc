@@ -88,7 +88,7 @@ bool Client::setOperator(bool on) {
 	if (on) {
 		flags |= CLI_OPER;
 	} else {
-		flags = flags && ~CLI_OPER;
+		flags = flags & ~CLI_OPER;
 	}
 	if (flags == before) {
 		return false;
@@ -102,7 +102,7 @@ bool Client::setInvisible(bool on) {
 	if (on) {
 		flags |= CLI_INV;
 	} else {
-		flags = flags && ~CLI_INV;
+		flags = flags & ~CLI_INV;
 	}
 	if (flags == before) {
 		return false;
@@ -116,7 +116,7 @@ bool Client::setNotice(bool on) {
 	if (on) {
 		flags |= CLI_NOTICE;
 	} else {
-		flags = flags && ~CLI_NOTICE;
+		flags = flags & ~CLI_NOTICE;
 	}
 	if (flags == before) {
 		return false;
@@ -130,7 +130,7 @@ bool Client::setWallop(bool on) {
 	if (on) {
 		flags |= CLI_WALLOP;
 	} else {
-		flags = flags && ~CLI_WALLOP;
+		flags = flags & ~CLI_WALLOP;
 	}
 	if (flags == before) {
 		return false;
