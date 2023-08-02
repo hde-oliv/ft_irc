@@ -347,7 +347,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
@@ -362,10 +362,28 @@ void Server::unexpectedDisconnectHandling(pollfd p) {
 	c->setToDisconnect(true);
 }
 
-void Server::remCliFromChan(Client *cli, Channel *ch) {
+// NOTE: message needs to have :
+void Server::removeClientFromChannel(Client *cli, Channel *ch,
+									 std::string message) {
 	ch->removeClient(cli);
 	cli->removeChannel(ch);
 	if (ch->getClients().size() == 0) {
 		this->channels.erase(toIrcUpperCase(ch->getName()));
+	} else {
+		std::stringstream ss;
+
+		ss << ":";
+		ss << cli->getNickname();
+		ss << " PART";
+		ss << " " << ch->getName();
+		ss << message;
+		ss << "\r\n";
+
+		std::map<Client *, uint>::iterator itb = ch->getClients().begin();
+		std::map<Client *, uint>::iterator ite = ch->getClients().end();
+
+		for (; itb != ite; itb++) {
+			itb->first->setSendData(ss.str());
+		}
 	}
 };

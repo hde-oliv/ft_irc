@@ -58,7 +58,8 @@ class Server {
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
 	void	successfulJoin(Client *cli, Channel *ch);
-	void	remCliFromChan(Client *cli, Channel *ch);
+
+	void removeClientFromChannel(Client *cli, Channel *ch, std::string message);
 
 	std::map<std::string, Channel>::iterator getChannelByName(
 		std::string channelName);
