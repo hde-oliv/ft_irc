@@ -146,3 +146,18 @@ void Channel::addInvite(std::string nickname) {
 void Channel::removeInvited(std::string nickname) {
 	invited.erase(toIrcUpperCase(nickname));
 };
+/*
+Elevates the first user to operator when there is none in the channel.
+This function requires that there is at least 1 client in it.
+*/
+void Channel::asureOperator() {
+	std::map<Client *, unsigned int>::iterator it;
+	it = clients.begin();
+	while (it != clients.end()) {
+		if (it->second & USER_OPERATOR) return;
+		it++;
+	}
+	it		   = clients.begin();
+	it->second = it->second | USER_OPERATOR;
+	// todo, send user mode to the new operator, and namreply to users
+};
