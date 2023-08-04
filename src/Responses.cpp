@@ -286,10 +286,6 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 	std::map<Client *, unsigned int>		   clients = ch->getClients();
 	std::map<Client *, unsigned int>::iterator cli	   = clients.begin();
 
-	// NOTE: Who is the worse command to implement
-	// check later if it can be skipped
-
-	// TODO: Not working
 	for (; cli != clients.end(); cli++) {
 		if (!cli->first->isVisible()) {
 			continue;
@@ -309,7 +305,6 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 		if (cli->second & USER_OPERATOR) {
 			ss << "@";
 		}
-		// TODO: Check for voiced
 
 		ss << " :0";
 		ss << " " << (*cli->first).getRealname();
@@ -345,7 +340,7 @@ std::string Server::badchannelkey(pollfd p, std::string channel) {
 	ss << ":localhost 475";
 	ss << " " << c->getNickname();
 	ss << " " << channel;
-	ss << " :Cannot join channel (+)";
+	ss << " :Cannot join channel (+k)";
 	ss << "\r\n";
 
 	return ss.str();
