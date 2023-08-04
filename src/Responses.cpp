@@ -166,7 +166,7 @@ std::string Server::topic(pollfd p, Channel *ch) {
 
 	ss << ":localhost 332 " << c->getNickname();
 	ss << " " << ch->getName();
-	ss << " :" << ch->getTopic();
+	ss << " " << ch->getTopic();
 	ss << "\r\n";
 
 	return ss.str();

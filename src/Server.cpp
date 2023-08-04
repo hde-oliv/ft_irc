@@ -290,9 +290,9 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 	} else if (cm.cmd == "PRIVMSG") {
 		privmsg(p, cm);
 	} else if (cm.cmd == "TOPIC") {
-		topic(p, cm);  // TODO: Test
+		topic(p, cm);
 	} else if (cm.cmd == "NOTICE") {
-		notice(p, cm);	// TODO: Test
+		notice(p, cm);
 	} else if (cm.cmd == "PART") {
 		part(p, cm);
 	} else if (cm.cmd == "WHO") {
@@ -338,7 +338,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client		   *c = &clients[p.fd];
+	Client			 *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
