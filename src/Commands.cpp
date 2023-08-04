@@ -65,8 +65,6 @@ void Server::nick(pollfd p, Command &t) {
 void Server::oper(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
-	// TODO: Test
-
 	if (t.args.size() < 2) {
 		c->setSendData(needmoreparams(p, t.cmd));
 		return;

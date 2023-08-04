@@ -30,6 +30,9 @@ void Channel::setPassword(std::string password) { this->password = password; }
 void Channel::removePassword() { this->password = ""; };
 
 void Channel::removeClient(Client *c) {
+	if (creator == c) {
+		creator = NULL;
+	}
 	clients.erase(c);
 	if (clients.size() > 0) {
 		asureOperator();
@@ -160,5 +163,35 @@ void Channel::asureOperator() {
 	}
 	it		   = clients.begin();
 	it->second = it->second | USER_OPERATOR;
-	// TODO: send user mode to the new operator, and namreply to users
+
+	// std::stringstream ss;
+	// Client		   *c = it->first;
+
+	// ss << ":localhost 353 " << c->getNickname();
+	// ss << " = :" << name << " ";
+	// if (creator) {
+	// 	ss << "!" << creator->getNickname() << " ";
+	// }
+
+	// std::map<Client *, unsigned int>::iterator cli = clients.begin();
+
+	// while (cli != clients.end()) {
+	// 	if (creator != NULL) {
+	// 		if (cli->first == creator) {
+	// 			cli++;
+	// 			continue;
+	// 		}
+	// 	}
+	// 	if (cli->second & USER_OPERATOR) {
+	// 		ss << "@";
+	// 	}
+	// 	ss << (*cli->first).getNickname() << " ";
+	// 	cli++;
+	// }
+	// ss << "\r\n";
+	// ss << ":localhost 366 " << c->getNickname();
+	// ss << " " << name;
+	// ss << " :End of NAMES list";
+	// ss << "\r\n";
+	// broadcast(it->first, ss.str(), true);
 };
