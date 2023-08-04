@@ -79,6 +79,7 @@ void Server::startServer() {
 			serverEventHandling();
 			clientEventHandling();
 			disconnectHandling();
+			clearEmptyChannels();
 		}
 	}
 	close(server_fd);
@@ -375,5 +376,22 @@ void Server::removeClientFromChannel(Client *cli, Channel *ch,
 		for (; itb != ite; itb++) {
 			itb->first->setSendData(ss.str());
 		}
+	}
+};
+/*This function expect the name already in IrcUppercase format*/
+void Server::removeChannel(std::string name) { channels.erase(name); }
+void Server::clearEmptyChannels() {
+	std::map<std::string, Channel>::iterator it;
+	it = channels.begin();
+	std::vector<std::string> toDelete;
+	while (it != channels.end()) {
+		if (it->second.getClients().size() == 0)
+			toDelete.push_back(toIrcUpperCase(it->second.getName()));
+		it++;
+	}
+	std::size_t i = 0;
+	while (i < toDelete.size()) {
+		channels.erase(toDelete.at(i));
+		i++;
 	}
 };

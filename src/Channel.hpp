@@ -61,6 +61,7 @@ class Channel {
 	void setSpeaker(std::string clientNickname, bool newValue);
 	void broadcast(Client *sender, std::string message, bool toSend);
 	bool toggleMode(char mode, bool on);
+
 	void initialize(std::string name, std::string password, Client *op);
 	void initialize(std::string name, Client *op);
 

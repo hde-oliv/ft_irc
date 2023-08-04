@@ -31,8 +31,9 @@ void Channel::removePassword() { this->password = ""; };
 
 void Channel::removeClient(Client *c) {
 	clients.erase(c);
-	// TODO: if there are no more operators, someone must be elevated!
-	// if there no more clients, the channel must be closed
+	if (clients.size() > 0) {
+		asureOperator();
+	}
 }
 
 void Channel::broadcast(Client *sender, std::string message, bool toSend) {
@@ -159,5 +160,5 @@ void Channel::asureOperator() {
 	}
 	it		   = clients.begin();
 	it->second = it->second | USER_OPERATOR;
-	// todo, send user mode to the new operator, and namreply to users
+	// TODO: send user mode to the new operator, and namreply to users
 };

@@ -58,6 +58,8 @@ class Server {
 	void	disconnectHandling();
 	void	unexpectedDisconnectHandling(pollfd p);
 	void	successfulJoin(Client *cli, Channel *ch);
+	void	clearEmptyChannels();
+	void	removeChannel(std::string name);
 
 	void removeClientFromChannel(Client *cli, Channel *ch, std::string message);
 
