@@ -226,8 +226,7 @@ void Server::who(pollfd p, Command &t) {
 
 	for (it = channels.begin(); it != channels.end(); it++) {
 		if (it->first == toIrcUpperCase(t.args[0])) {
-			c->setSendData(whoreply(p, &(it->second)));
-			return;
+			return c->setSendData(whoreply(p, &(it->second)));
 		}
 	}
 
