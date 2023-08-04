@@ -76,9 +76,9 @@ void Server::oper(pollfd p, Command &t) {
 		return;
 	}
 
-	c->setOp(true);
-	c->setSendData(youreoper(p));
-	// TODO: Send MODE +o
+	if (c->setMode('o', true)) {
+		c->setSendData(youreoper(p));
+	}
 }
 
 void Server::privmsg(pollfd p, Command &t) {
@@ -97,9 +97,6 @@ void Server::privmsg(pollfd p, Command &t) {
 		c->setSendData(needmoreparams(p, "PRIVMSG"));
 		return;
 	}
-
-	// TODO: ERR_CANNOTSENDTOCHAN
-	// TODO: Handle multiple recipents and ERR_TOOMANYTARGETS
 
 	ss << c->getClientPrefix();
 	ss << " PRIVMSG";
@@ -177,9 +174,9 @@ void Server::join(pollfd p, Command &t) {
 		ch->removeInvited(c->getNickname());
 		return successfulJoin(c, ch);
 	}
+
 	// NOTE: Check if client sent a password and if its incorrect or
 	// the server has a password and the client didnt provide one
-	// TODO: Check if these responses are correct
 	if (sentPassword) {
 		if (!ch->evalPassword(t.args[1]))
 			return c->setSendData(badchannelkey(p, ch->getName()));
@@ -230,9 +227,7 @@ void Server::who(pollfd p, Command &t) {
 		}
 	}
 
-	// TODO: Check later what other servers respond when the Channel parameter
-	// does not exist
-	c->setSendData(nosuchserver(p, t.args[0]));
+	c->setSendData(nosuchnick(p, t.args[0]));
 }
 
 void Server::topic(pollfd p, Command &t) {
@@ -298,9 +293,7 @@ void Server::whois(pollfd p, Command &t) {
 		}
 	}
 
-	// TODO: Check later what other servers respond when the Channel parameter
-	// does not exist
-	c->setSendData(nosuchserver(p, t.args[0]));
+	c->setSendData(nosuchnick(p, t.args[0]));
 }
 
 void Server::quit(pollfd p, Command &t) {
