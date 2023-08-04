@@ -52,6 +52,7 @@ class Channel {
 	bool isInvited(std::string nickname);
 	void addInvite(std::string nickname);
 	void removeInvited(std::string nickname);
+	void asureOperator();
 
 	void addClient(Client *c);
 	void removeClient(Client *c);
