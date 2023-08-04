@@ -233,16 +233,6 @@ void Server::sendToClient(pollfd p) {
 void Server::ejectClient(int clientFd, int reason) {
 	std::vector<pollfd>::iterator it = pollFds.begin();
 
-	Client	   &cli = clients[clientFd];
-	std::size_t i	= 0;
-
-	std::vector<Channel *> cliChans = cli.getChannels();
-
-	while (i < cliChans.size()) {
-		cliChans[i]->removeClient(&cli);
-		i++;
-	}
-
 	for (; it < pollFds.end(); it++) {
 		if ((*it).fd == clientFd) {
 			close(clientFd);
