@@ -82,7 +82,7 @@ void Server::oper(pollfd p, Command &t) {
 }
 
 void Server::privmsg(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 	std::string		  ch_prefix = CHANNEL_PREFIX;
 
@@ -98,6 +98,10 @@ void Server::privmsg(pollfd p, Command &t) {
 		return;
 	}
 
+	std::string botname = CHATBOTNAME;
+	if (toIrcUpperCase(t.args[0]) == botname) {
+		// return bot msg to issuer!
+	}
 	ss << c->getClientPrefix();
 	ss << " PRIVMSG";
 	ss << " ";
@@ -210,7 +214,7 @@ void Server::successfulJoin(Client *cli, Channel *ch) {
 };
 
 void Server::who(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -231,7 +235,7 @@ void Server::who(pollfd p, Command &t) {
 }
 
 void Server::topic(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -275,7 +279,7 @@ void Server::topic(pollfd p, Command &t) {
 }
 
 void Server::whois(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	// NOTE: Not defined in RFC
@@ -297,7 +301,7 @@ void Server::whois(pollfd p, Command &t) {
 }
 
 void Server::quit(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":" << c->getNickname();
@@ -314,7 +318,7 @@ void Server::quit(pollfd p, Command &t) {
 }
 
 void Server::ping(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost PONG localhost";
@@ -327,7 +331,7 @@ void Server::ping(pollfd p, Command &t) {
 }
 
 void Server::part(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 1) {
@@ -358,7 +362,7 @@ void Server::part(pollfd p, Command &t) {
 }
 
 void Server::notice(pollfd p, Command &t) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (t.args.size() < 2) {
@@ -402,7 +406,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	if (it == channels.end()) {
 		return (c->setSendData(nosuchchannel(p, "MODE")));
 	}
-	Channel									  &ch = it->second;
+	Channel								   &ch = it->second;
 	std::map<Client *, unsigned int>::iterator cli =
 		ch.getClientByNick(c->getNickname());
 
@@ -590,6 +594,11 @@ bool Server::nicknameAlreadyExists(std::string nickname) {
 	std::map<int, Client>::iterator it = clients.begin();
 
 	std::string uppercaseNickname = toIrcUpperCase(nickname);
+
+	std::string disallowedNick = CHATBOTNAME;
+	if (uppercaseNickname == disallowedNick) {
+		return true;
+	}
 
 	for (; it != clients.end(); it++) {
 		if (toIrcUpperCase((it->second).getNickname()) == uppercaseNickname)

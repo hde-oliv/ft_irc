@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Channel.hpp"
+#include "ChatBot.hpp"
 #include "Client.hpp"
 #include "Utils.hpp"
 
@@ -22,6 +23,7 @@
 #define KICKED 2
 #define MAX_CLIENTS 5
 #define FORBIDDEN_USER_CHARS " ,*?!@$.#&:\r\n\0\a+"
+#define CHATBOTNAME "CHATBOT"
 
 class Server {
 	public:
@@ -44,6 +46,7 @@ class Server {
 	std::map<std::string, Channel> channels;
 	std::vector<pollfd>			   pollFds;
 	struct sockaddr_in			   address;
+	ChatBot						   bot;
 
 	void	setupSocket();
 	void	clientEventHandling();
