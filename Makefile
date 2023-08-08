@@ -5,7 +5,7 @@ SRC		:=	Server.cpp main.cpp Utils.cpp Channel.cpp Client.cpp Commands.cpp Respon
 SRCS	:=	$(addprefix $(SRC_DIR)/,$(SRC))
 OBJS	:=	$(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 CC		:=	c++
-CFLAGS	+=	-Wall -Wextra -Werror -std=c++98 -g
+CFLAGS	+=	-Wall -Wextra -Werror -std=c++98
 RM		:=	rm -rf
 NAME	:=	ircserv
 
