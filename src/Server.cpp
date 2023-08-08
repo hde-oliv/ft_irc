@@ -18,9 +18,9 @@
 
 extern bool g_online;
 
-Server::Server() {}
+Server::Server() : bot(*this) {}
 
-Server::Server(std::string const &password, int const &port) {
+Server::Server(std::string const &password, int const &port) : bot(*this) {
 	this->password		   = password;
 	this->port			   = port;
 	this->server_fd		   = 0;
@@ -338,7 +338,7 @@ void Server::disconnectHandling() {
 }
 
 void Server::unexpectedDisconnectHandling(pollfd p) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	if (c->getRegistration() == (NICK_FLAG | USER_FLAG | PASS_FLAG)) {
@@ -394,4 +394,19 @@ void Server::clearEmptyChannels() {
 		channels.erase(toDelete.at(i));
 		i++;
 	}
+};
+
+std::vector<std::pair<std::string, bool> > Server::listClients() {
+	std::vector<std::pair<std::string, bool> > finalValue;
+
+	std::map<int, Client>::iterator it;
+	it = clients.begin();
+	while (it != clients.end()) {
+		bool		visible = it->second.isVisible();
+		std::string name	= it->second.getOp() ? "@" : "";
+		name += it->second.getNickname();
+		finalValue.push_back(std::make_pair(name, visible));
+		it++;
+	}
+	return finalValue;
 };

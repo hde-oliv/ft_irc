@@ -11,7 +11,6 @@ Client::Client() {
 	this->knowPassword = false;
 	this->welcome	   = false;
 	this->toDisconnect = false;
-	this->op		   = false;
 }
 
 Client::~Client() {
@@ -27,7 +26,7 @@ int			Client::getRegistration() const { return registration; }
 bool		Client::getWelcome() const { return welcome; }
 bool		Client::getKnowPassword() const { return knowPassword; }
 bool		Client::getToDisconnect() const { return toDisconnect; }
-bool		Client::getOp() const { return op; }
+bool		Client::getOp() const { return flags & CLI_OPER; }
 std::string Client::getNickname() const { return nickname; }
 std::string Client::getUsername() const { return username; }
 std::string Client::getHostname() const { return hostname; }
@@ -44,7 +43,12 @@ std::string Client::getClientPrefix() {
 	return (ss.str());
 };
 
-void Client::setOp(bool value) { op = value; }
+void Client::setOp(bool value) {
+	if (value)
+		flags |= CLI_OPER;
+	else
+		flags = flags & ~CLI_OPER;
+}
 void Client::setWelcome(bool value) { welcome = value; }
 void Client::setKnowPassword(bool value) { knowPassword = value; }
 void Client::setRegistration(int flag) { registration |= flag; }

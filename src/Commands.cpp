@@ -100,7 +100,7 @@ void Server::privmsg(pollfd p, Command &t) {
 
 	std::string botname = CHATBOTNAME;
 	if (toIrcUpperCase(t.args[0]) == botname) {
-		// return bot msg to issuer!
+		return bot.answer(c, t.args[1]);
 	}
 	ss << c->getClientPrefix();
 	ss << " PRIVMSG";

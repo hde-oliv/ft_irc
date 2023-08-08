@@ -76,7 +76,6 @@ class Client {
 	int			 registration;	// PASS(2) - USER(4) - NICK(8)
 	bool		 welcome;		// If the welcome message was sent
 	bool		 knowPassword;	// If the client knows the server password
-	bool		 op;			// If the client is a Server Operator
 	bool		 toDisconnect;
 	unsigned int flags;
 	std::string	 nickname;

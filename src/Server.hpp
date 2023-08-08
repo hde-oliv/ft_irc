@@ -34,6 +34,7 @@ class Server {
 
 	bool evalChanMode(pollfd p, std::vector<std::string> args);
 	bool evalUserMode(pollfd p, std::vector<std::string> args);
+	std::vector<std::pair<std::string, bool> > listClients();
 
 	Client *getClientByNick(std::string nickname);
 

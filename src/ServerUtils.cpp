@@ -71,8 +71,6 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 		needmoreparams(p, "MODE"));	 // TODO: the correct return here is a list
 									 // of modes: channelmodeis !
 	return false;
-	// args 0 = composition of '+' | '-' and { p | s | i | t | n | m | k } | one
-	// of [ o | l | b | v ] args 1 is the parameter needed by o | l | b | v
 }
 bool Server::evalUserMode(pollfd p, std::vector<std::string> args) {
 	Client *c = &clients[p.fd];
