@@ -33,7 +33,6 @@ void ChatBot::answer(Client *issuer, std::string msg) {
 	}
 	ss << "\r\n";
 	send(issuer->getFd(), ss.str().c_str(), ss.str().size(), 0);
-	// issuer->setSendData(ss.str());
 };
 
 std::string ChatBot::wellcome() {

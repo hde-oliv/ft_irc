@@ -12,8 +12,8 @@
 bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 	Client *cli = &clients[p.fd];
 
-	std::string toggleMode	   = "psitnm";
-	std::string cmdsWithParams = "olbvk";
+	std::string toggleMode	   = "it";
+	std::string cmdsWithParams = "lko";
 	std::string cmdPrefix	   = "+-";
 	std::string allModes	   = toggleMode + cmdsWithParams;
 
@@ -60,16 +60,12 @@ bool Server::evalChanMode(pollfd p, std::vector<std::string> args) {
 			return true;
 		}
 		if (paramPair.second > 1 || args.size() < 3) {
-			cli->setSendData(
-				needmoreparams(p, "MODE"));	 // This error code might need
-											 // to be changed
+			cli->setSendData(needmoreparams(p, "MODE"));
 			return false;
 		}
 		return true;
 	}
-	cli->setSendData(
-		needmoreparams(p, "MODE"));	 // TODO: the correct return here is a list
-									 // of modes: channelmodeis !
+	cli->setSendData(channelmodeis(p, args[0]));
 	return false;
 }
 bool Server::evalUserMode(pollfd p, std::vector<std::string> args) {

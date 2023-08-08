@@ -268,7 +268,7 @@ void Server::topic(pollfd p, Command &t) {
 
 		if (it != cls.end() && it->second & USER_OPERATOR) {
 			ch->setTopic(t.args[1]);
-			return c->setSendData(topic(p, ch));
+			return ch->broadcast(c, topic(p, ch), true);
 		} else {
 			return c->setSendData(chanoprivsneeded(p, ch));
 		}
@@ -398,7 +398,7 @@ void Server::channelMode(pollfd p, Command &t) {
 	Client *c = &clients[p.fd];
 
 	std::string toggleMode	   = "it";
-	std::string cmdsWithParams = "lk";
+	std::string cmdsWithParams = "lko";
 	std::string cmdPrefix	   = "+-";
 
 	std::map<std::string, Channel>::iterator it = getChannelByName(t.args[0]);
@@ -411,12 +411,19 @@ void Server::channelMode(pollfd p, Command &t) {
 		ch.getClientByNick(c->getNickname());
 
 	if (!(cli->second & USER_OPERATOR)) {
-		// /mode channel +o hcduller (send by a non _USER_OPERATOR)
-		// :irc.uworld.se 482 hcduller #semsenhahc :You're not channel operator
+		c->setSendData(chanoprivsneeded(p, &ch));
 		return;
 	}
 
 	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
+		// todo, the second argument might be a nickname, which will trigger an
+		// usermode inside this channel answer
+		/*
+		MODE #semsenha hcduller
+		:irc.uworld.se 472 hcduller d :is unknown mode char to me
+		:irc.uworld.se 349 hcduller #semsenha :End of Channel Exception List
+
+		*/
 		return (c->setSendData(unknownmode(p, t.args[0][1])));
 
 	bool		on = t.args[1][0] == '+';
@@ -543,38 +550,8 @@ void Server::mode(pollfd p, Command &t) {
 		}
 		return;
 	}
-	/*
-		resps:
-		324	RPL_CHANNELMODEIS		"<channel> <mode> <mode params>"
-		367	RPL_BANLIST				"<channel> <banid>"
-		368	RPL_ENDOFBANLIST		"<channel> :End of channel ban list"
-			- When listing the active 'bans' for a
-				given channel, a server is required to send the list back using
-				the RPL_BANLIST and RPL_ENDOFBANLIST messages. A separate
-				RPL_BANLIST is sent for each active banid.  After the banids
-				have been listed (or if none present) a RPL_ENDOFBANLIST must be
-				sent.
-
-		221	RPL_UMODEIS				"<user mode string>"
-			- To answer a query about a client's own mode,
-			RPL_UMODEIS is sent back.
-
-		442	ERR_NOTONCHANNEL		"<channel> :You're not on that channel"
-		461	ERR_NEEDMOREPARAMS		"<command> :Not enough parameters"
-		482	ERR_CHANOPRIVSNEEDED	"<channel> :You're not channel operator"
-		472	ERR_UNKNOWNMODE			"<char> :is unknown mode char to me"
-		502	ERR_USERSDONTMATCH		":Cant change mode for other users"
-		401	ERR_NOSUCHNICK			"<nickname> :No such nick/channel"
-		467	ERR_KEYSET				"<channel> :Channel key already set"
-		403	ERR_NOSUCHCHANNEL		"<channel name> :No such channel"
-		501	ERR_UMODEUNKNOWNFLAG	":Unknown MODE flag"
-			- Returned by the server to indicate that a MODE
-				  message was sent with a nickname parameter and that
-				  the a mode flag sent was not recognized.
-		*/
 }
 
-// Utils
 bool Server::validNickname(std::string nickname) {
 	if (nickname.empty() || isdigit(nickname[0])) {
 		return false;

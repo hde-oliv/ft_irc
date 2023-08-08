@@ -206,7 +206,9 @@ void Server::readFromClient(pollfd p) {
 
 	for (; it < c->cmdVec.end(); it++) {
 		// DEBUG
-		std::cout << "Client " << c->getNickname() << " " << p.fd << " sent: ";
+		std::string cNick = "(unidentified)";
+		if (c->getNickname().size() > 0) cNick = c->getNickname();
+		std::cout << "Client " << cNick << " " << p.fd << " sent: ";
 		std::cout << RED << (*it) << RESET << std::endl;
 		executeClientMessage(p, (*it));
 	}
@@ -219,13 +221,10 @@ void Server::sendToClient(pollfd p) {
 
 	if (c->getSendData().size()) {
 		r = send(p.fd, c->getSendData().c_str(), c->getSendData().size(), 0);
-
-		// DEBUG
-		std::cout << CYAN << c->getSendData() << RESET;
-
 		if (r == -1) {
 			panic("Server::send", "Failed", P_CONTINUE);
 		} else if (r > 0) {
+			std::cout << CYAN << c->getSendData() << RESET;
 			c->resetSendData(r);
 		}
 	}
@@ -266,10 +265,6 @@ void Server::executeClientMessage(pollfd p, std::string msg) {
 	Client	   *c  = &clients[p.fd];
 	Command		cm = messageToCommand(msg);
 	std::string response;
-
-	// DEBUG
-	std::cout << BLUE << cm.cmd << RESET << std::endl;
-	std::cout << YELLOW << c->getRegistration() << RESET << std::endl;
 
 	if (cm.cmd == "NICK") {
 		nick(p, cm);
