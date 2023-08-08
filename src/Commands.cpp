@@ -180,7 +180,7 @@ void Server::join(pollfd p, Command &t) {
 	}
 
 	// NOTE: Check if client sent a password and if its incorrect or
-	// the server has a password and the client didnt provide one
+	// NOTE:	the server has a password and the client didnt provide one
 	if (sentPassword) {
 		if (!ch->evalPassword(t.args[1]))
 			return c->setSendData(badchannelkey(p, ch->getName()));
@@ -312,8 +312,6 @@ void Server::quit(pollfd p, Command &t) {
 	}
 	ss << "\r\n";
 
-	// NOTE: Actually is not broadcasted
-	// broadcastMessage(p, ss.str());
 	c->setToDisconnect(true);
 }
 
@@ -416,14 +414,6 @@ void Server::channelMode(pollfd p, Command &t) {
 	}
 
 	if (cmdPrefix.find(t.args[1][0]) == std::string::npos)
-		// todo, the second argument might be a nickname, which will trigger an
-		// usermode inside this channel answer
-		/*
-		MODE #semsenha hcduller
-		:irc.uworld.se 472 hcduller d :is unknown mode char to me
-		:irc.uworld.se 349 hcduller #semsenha :End of Channel Exception List
-
-		*/
 		return (c->setSendData(unknownmode(p, t.args[0][1])));
 
 	bool		on = t.args[1][0] == '+';
@@ -442,7 +432,7 @@ void Server::channelMode(pollfd p, Command &t) {
 		t.args[1].erase(0, 1);
 	}
 
-	// handle toggles
+	// NOTE: handle toggles
 	std::set<char>::iterator modeIt;
 	for (std::size_t i = 0; i < toggleMode.size(); i++) {
 		modeIt = chFlags.find(toggleMode.at(i));
@@ -453,11 +443,11 @@ void Server::channelMode(pollfd p, Command &t) {
 		}
 	}
 
-	// handle non-toggle
+	// NOTE: handle non-toggle
 	std::stringstream ss;
 	int				  lim = 0;
 	switch (usrFlag) {
-		case 'l':  // this is not affected by + -
+		case 'l':
 			ss << t.args[2];
 			if (!(ss >> lim) || lim <= 0) {
 				return (c->setSendData(needmoreparams(p, "MODE")));
@@ -509,8 +499,7 @@ void Server::userMode(pollfd p, Command &t) {
 	}
 
 	std::set<char>::iterator it = flags.begin();
-	while (it != flags.end()) {	 // this prevents users from elevating
-								 // themselves
+	while (it != flags.end()) {
 		if (*it == 'o' && on) {
 			it++;
 			continue;

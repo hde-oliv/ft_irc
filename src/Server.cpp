@@ -159,10 +159,12 @@ void Server::newClientHandling() {
 	}
 }
 
-// This functions takes in a pollfd p, finds the Client in Server::clients that
-// is associated with p, than loads the Client->cmdVec with strings containg the
-// raw commands received by the server. cmvVec acts like a quee of messages
-// received and ready to be processed
+/*
+This functions takes in a pollfd p, finds the Client in Server::clients that
+is associated with p, than loads the Client->cmdVec with strings containg the
+raw commands received by the server. cmvVec acts like a quee of messages
+received and ready to be processed
+*/
 void Server::recvLoop(pollfd p) {
 	char	buffer[BUFFER_SIZE];
 	ssize_t bytesRead;
@@ -205,7 +207,6 @@ void Server::readFromClient(pollfd p) {
 	std::vector<std::string>::iterator it = c->cmdVec.begin();
 
 	for (; it < c->cmdVec.end(); it++) {
-		// DEBUG
 		std::string cNick = "(unidentified)";
 		if (c->getNickname().size() > 0) cNick = c->getNickname();
 		std::cout << "Client " << cNick << " " << p.fd << " sent: ";

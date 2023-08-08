@@ -163,35 +163,4 @@ void Channel::asureOperator() {
 	}
 	it		   = clients.begin();
 	it->second = it->second | USER_OPERATOR;
-
-	// std::stringstream ss;
-	// Client		   *c = it->first;
-
-	// ss << ":localhost 353 " << c->getNickname();
-	// ss << " = :" << name << " ";
-	// if (creator) {
-	// 	ss << "!" << creator->getNickname() << " ";
-	// }
-
-	// std::map<Client *, unsigned int>::iterator cli = clients.begin();
-
-	// while (cli != clients.end()) {
-	// 	if (creator != NULL) {
-	// 		if (cli->first == creator) {
-	// 			cli++;
-	// 			continue;
-	// 		}
-	// 	}
-	// 	if (cli->second & USER_OPERATOR) {
-	// 		ss << "@";
-	// 	}
-	// 	ss << (*cli->first).getNickname() << " ";
-	// 	cli++;
-	// }
-	// ss << "\r\n";
-	// ss << ":localhost 366 " << c->getNickname();
-	// ss << " " << name;
-	// ss << " :End of NAMES list";
-	// ss << "\r\n";
-	// broadcast(it->first, ss.str(), true);
 };

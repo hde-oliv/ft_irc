@@ -5,7 +5,7 @@
 
 std::string Server::needmoreparams(pollfd p, std::string command) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 461 " << c->getNickname();
 	ss << " " << command << " :Not enough parameters";
@@ -16,7 +16,7 @@ std::string Server::needmoreparams(pollfd p, std::string command) {
 
 std::string Server::alreadyregistered(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 462 " << c->getNickname();
 	ss << " :You may not reregister";
@@ -27,7 +27,7 @@ std::string Server::alreadyregistered(pollfd p) {
 
 std::string Server::passwdmismatch(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 464 " << c->getNickname();
 	ss << " :Password incorrect";
@@ -38,7 +38,7 @@ std::string Server::passwdmismatch(pollfd p) {
 
 std::string Server::nonicknamegiven(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 431 " << c->getNickname();
 	ss << " :No nickname given";
@@ -49,7 +49,7 @@ std::string Server::nonicknamegiven(pollfd p) {
 
 std::string Server::erroneusnickname(pollfd p, std::string nickname) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 432 " << c->getNickname();
 	ss << " " << nickname << " :Erroneus nickname";
@@ -60,7 +60,7 @@ std::string Server::erroneusnickname(pollfd p, std::string nickname) {
 
 std::string Server::nicknameinuse(pollfd p, std::string nickname) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 433 " << c->getNickname();
 	ss << " " << nickname << " :Nickname is already in use";
@@ -70,24 +70,24 @@ std::string Server::nicknameinuse(pollfd p, std::string nickname) {
 }
 std::string Server::welcome(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
-	// RPL_WELCOME 001
+	// NOTE: RPL_WELCOME 001
 	ss << ":localhost 001 " << c->getNickname();
 	ss << " :Welcome to the FT_IRC server " << c->getNickname();
 	ss << "\r\n";
 
-	// RPL_YOURHOST 002
+	// NOTE: RPL_YOURHOST 002
 	ss << ":localhost 002 " << c->getNickname();
 	ss << " :Your host is localhost, running version 0.1";
 	ss << "\r\n";
 
-	// RPL_CREATED 003
+	// NOTE: RPL_CREATED 003
 	ss << ":localhost 003 " << c->getNickname();
 	ss << " :This server was created " << creationDatetime;
 	ss << "\r\n";
 
-	// RPL_MYINFO 004
+	// NOTE: RPL_MYINFO 004
 	ss << ":localhost 004 " << c->getNickname();
 	ss << " localhost 0.1 iowstRb- biklmnopstvrRcCNuMTD";
 	ss << "\r\n";
@@ -97,7 +97,7 @@ std::string Server::welcome(pollfd p) {
 
 std::string Server::motd(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 375 " << c->getNickname();
 	ss << " :- localhost Message of the day -";
@@ -116,7 +116,7 @@ std::string Server::motd(pollfd p) {
 
 std::string Server::nooperhost(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 491 " << c->getNickname();
 	ss << " :No O-lines for your host";
@@ -127,7 +127,7 @@ std::string Server::nooperhost(pollfd p) {
 
 std::string Server::youreoper(pollfd p) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 381 " << c->getNickname();
 	ss << " :You are now an IRC operator";
@@ -138,7 +138,7 @@ std::string Server::youreoper(pollfd p) {
 
 std::string Server::unknowncommand(pollfd p, std::string command) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 421 " << c->getNickname();
 	ss << " " << command;
@@ -150,7 +150,7 @@ std::string Server::unknowncommand(pollfd p, std::string command) {
 
 std::string Server::nosuchchannel(pollfd p, std::string name) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 403 " << c->getNickname();
 	ss << " " << name;
@@ -162,7 +162,7 @@ std::string Server::nosuchchannel(pollfd p, std::string name) {
 
 std::string Server::topic(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 332 " << c->getNickname();
 	ss << " " << ch->getName();
@@ -174,7 +174,7 @@ std::string Server::topic(pollfd p, Channel *ch) {
 
 std::string Server::notopic(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 331 " << c->getNickname();
 	ss << " " << ch->getName();
@@ -186,7 +186,7 @@ std::string Server::notopic(pollfd p, Channel *ch) {
 
 std::string Server::namreply(pollfd p, Channel *ch, bool found) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	if (found) {
 		Client *creator = ch->getCreator();
@@ -213,8 +213,7 @@ std::string Server::namreply(pollfd p, Channel *ch, bool found) {
 			ss << (*cli->first).getNickname() << " ";
 			cli++;
 		}
-		ss << "\r\n";  // NOTE: I think the client can handle a single 353 with
-					   // everything
+		ss << "\r\n";
 	}
 
 	ss << ":localhost 366 " << c->getNickname();
@@ -226,7 +225,7 @@ std::string Server::namreply(pollfd p, Channel *ch, bool found) {
 }
 
 std::string Server::whoisreply(pollfd p, Client *ch) {
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost 311 " << c->getNickname();
@@ -282,7 +281,7 @@ std::string Server::whoisreply(pollfd p, Client *ch) {
 
 std::string Server::whoreply(pollfd p, Channel *ch) {
 	std::stringstream						   ss;
-	Client									  *c	   = &clients[p.fd];
+	Client									*c	   = &clients[p.fd];
 	std::map<Client *, unsigned int>		   clients = ch->getClients();
 	std::map<Client *, unsigned int>::iterator cli	   = clients.begin();
 
@@ -322,7 +321,7 @@ std::string Server::whoreply(pollfd p, Channel *ch) {
 
 std::string Server::nosuchserver(pollfd p, std::string name) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 402";
 	ss << " " << c->getNickname();
@@ -335,7 +334,7 @@ std::string Server::nosuchserver(pollfd p, std::string name) {
 
 std::string Server::badchannelkey(pollfd p, std::string channel) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 475";
 	ss << " " << c->getNickname();
@@ -348,7 +347,7 @@ std::string Server::badchannelkey(pollfd p, std::string channel) {
 
 std::string Server::unknownmode(pollfd p, char c) {
 	std::stringstream ss;
-	Client			 *cl = &clients[p.fd];
+	Client		   *cl = &clients[p.fd];
 
 	ss << ":localhost 472";
 	ss << " " << cl->getNickname();
@@ -375,8 +374,6 @@ std::string Server::usermodeis(Channel &ch, Client *cli, std::string modeStr) {
 // Called by user with /MODE <nickname> '+'|'-'{i|s|w|o}
 std::string Server::usermodeis(Client *cli, std::string modeStr) {
 	std::stringstream ss;
-	// :hdeoliv!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br MODE hdeoliv :+i
-	// :hcduller!~hcduller@Rizon-6F5C18E9.dsl.telesp.net.br MODE hcduller :-i
 
 	ss << ":" << cli->getNickname();
 	ss << " MODE 221";
@@ -388,7 +385,6 @@ std::string Server::usermodeis(Client *cli, std::string modeStr) {
 // Called by user with /MODE <nickname>
 std::string Server::usermodeis(Client *cli) {
 	std::stringstream ss;
-	//: irc.uworld.se 221 hdeoliv +ix
 
 	ss << ":localhost 221";
 	ss << " " << cli->getNickname();
@@ -399,7 +395,7 @@ std::string Server::usermodeis(Client *cli) {
 // This function is used for MODE without flags, returning the complete list of
 // modes enabled for a given channel
 std::string Server::channelmodeis(pollfd p, std::string channel) {
-	Client			 *cl = &clients[p.fd];
+	Client		   *cl = &clients[p.fd];
 	std::stringstream ss;
 
 	std::map<std::string, Channel>::iterator ch_it = getChannelByName(channel);
@@ -413,7 +409,7 @@ std::string Server::channelmodeis(pollfd p, std::string channel) {
 	ss << " " << ch->getName();
 	ss << " " << ch->getStrModes();
 	ss << "\r\n";
-	// return ":localhost MODE #semsenha +ti \r\n";
+
 	return ss.str();
 }
 
@@ -438,7 +434,7 @@ std::string Server::unknownmodeflag(Client *cli) {
 };
 std::string Server::notonchannel(pollfd p, std::string name) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 442";
 	ss << " " << c->getNickname();
@@ -451,7 +447,7 @@ std::string Server::notonchannel(pollfd p, std::string name) {
 
 std::string Server::chanoprivsneeded(pollfd p, Channel *ch) {
 	std::stringstream ss;
-	Client			 *c = &clients[p.fd];
+	Client		   *c = &clients[p.fd];
 
 	ss << ":localhost 482";
 	ss << " " << c->getNickname();
@@ -503,7 +499,7 @@ std::string Server::chanoprivsneeded(Client *issuer, Channel *chan) {
 }
 
 std::string Server::norecipient(pollfd p, std::string name) {
-	Client			 *cl = &clients[p.fd];
+	Client		   *cl = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost 411";
@@ -516,7 +512,7 @@ std::string Server::norecipient(pollfd p, std::string name) {
 }
 
 std::string Server::notexttosend(pollfd p) {
-	Client			 *cl = &clients[p.fd];
+	Client		   *cl = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost 412";
@@ -528,7 +524,7 @@ std::string Server::notexttosend(pollfd p) {
 }
 
 std::string Server::nosuchnick(pollfd p, std::string name) {
-	Client			 *cl = &clients[p.fd];
+	Client		   *cl = &clients[p.fd];
 	std::stringstream ss;
 
 	ss << ":localhost 401";
